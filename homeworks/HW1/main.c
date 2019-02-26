@@ -57,7 +57,7 @@ main(void)
   printf("\n\r");
   printf("************************************\n\r");
   printf("ECE353 - Spring 2019 HW1\n\r");
-  printf("************************************\n\r");
+  printf("WILSON, KEVIN\n\r");
   
 	// Initialize the GPIO Port D
 	gpio_enable_port(GPIOD_BASE);
