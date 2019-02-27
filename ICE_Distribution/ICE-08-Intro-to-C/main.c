@@ -13,22 +13,17 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-// ADD CODE 02
+#include "ws2812b.h"
 
 /******************************************************************************
  * MACROS
  *****************************************************************************/
-// ADD CODE 03
-
+#define NUM_LEDS 8
 
 /******************************************************************************
  * Global Variables
  *****************************************************************************/
-// ADD CODE 04
-
-
-
-
+WS2812B_t LEDs[NUM_LEDS];
 //*****************************************************************************
 // External Functions
 //*****************************************************************************
@@ -71,19 +66,70 @@ main(void)
   put_string("* ECE353: ICE-08-Intro-To-C\n\r");
   put_string("**************************************\n\r");
 
-  // ADD CODE 05
- 
-  // ADD CODE 06
+  // initialize array
+  LEDs[0].green = 0x00;
+  LEDs[0].red = 0x00;
+  LEDs[0].blue = 0x80;
+  
+  LEDs[1].green = 0x00;
+  LEDs[1].red = 0x80;
+  LEDs[1].blue = 0x00;
+  
+  LEDs[2].green = 0x00;
+  LEDs[2].red = 0x80;
+  LEDs[2].blue = 0x80;
+  
+  LEDs[3].green = 0x80;
+  LEDs[3].red = 0x00;
+  LEDs[3].blue = 0x00;
+  
+  LEDs[4].green = 0x80;
+  LEDs[4].red = 0x00;
+  LEDs[4].blue = 0x80;
+  
+  LEDs[5].green = 0x80;
+  LEDs[5].red = 0x80;
+  LEDs[5].blue = 0x00;
+  
+  LEDs[6].green = 0x80;
+  LEDs[6].red = 0x80;
+  LEDs[6].blue = 0x80;
+  
+  LEDs[7].green = 0x40;
+  LEDs[7].red = 0x20;
+  LEDs[7].blue = 0x80;
+
+  
+// Initialize all LEDs to 0x00
+for (i = 0; i < NUM_LEDS; i++)
+{
+	LEDs[i].green = 0x80;
+	LEDs[i].red = 0x80;
+	LEDs[i].blue = 0x80;
+}
+
+
+  // Write to WS28128B LEDs
+  // typecast the LEDs pointer as an unsigned 8 bit integer
+  WS2812B_write(WS2812B_GPIO_ADDR, (uint8_t *) LEDs, NUM_LEDS);
   
   // Infinite Loop
-  while(1){
-    
-    // ADD CODE 07
-
-    // ADD CODE 08
-
-    // ADD CODE 08
-
-    
-  };
+  while(1)
+	{
+		// rotate the WS2812B_t array
+		ws2812b_pulse( LEDs,  NUM_LEDS);
+		WS2812B_write(WS2812B_GPIO_ADDR, (uint8_t *) LEDs, NUM_LEDS);
+		// loop to delay the rotation of the WS28128B LEDs
+		// should exit when counts from 0 to 500000
+		// after rotated LEDs, write new colors using WS28128_write
+		
+		for (i = 0; i < 500000; i++)
+		{
+			continue;
+		}
+  }
+	 
+	
+	
 }
+

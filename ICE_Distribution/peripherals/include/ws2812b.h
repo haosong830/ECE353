@@ -11,6 +11,9 @@
 // ADD Code
 typedef __packed struct
 {
+	uint8_t green,
+			red,
+			blue;
 } WS2812B_t;
 
 /*******************************************************************************
@@ -18,8 +21,8 @@ typedef __packed struct
 ********************************************************************************
 * Summary:
 *
-*   Rotates the WS2812B structs are rotates in the array by one position.  This
-*   can be done by coping each WS2812B stuct to the next highest index in the 
+*   Rotates the WS2812B structs rotates in the array by one position.  This
+*   can be done by copying each WS2812B struct to the next highest index in the 
 *   array.  The last WS2812B struct should be moved to base[0]
 *
 *
@@ -34,7 +37,7 @@ typedef __packed struct
 void ws2812b_rotate( 
   WS2812B_t *base,
   uint8_t num_leds
-);
+  );
 
 /*******************************************************************************
 * Function Name: pulse_ws2812b
@@ -47,12 +50,12 @@ void ws2812b_rotate(
 *   if the value RED color codes are currently decrementing or incrementing.  
 *
 *   If the direction is incrementing AND the value of the red field is less than
-*   0xFF, the function will increment the red filed by 1 for each structure in 
+*   0xFF, the function will increment the red field by 1 for each structure in 
 *   the array.  
 *
-*   If the direction is incrementing and the value of the red filed is equal to
+*   If the direction is incrementing and the value of the red field is equal to
 *   0xFF, the function will change the direction to be counting down and decrement
-*   the red filed by 1 for each structure in the array.  
+*   the red field by 1 for each structure in the array.  
 *
 *   If the direction is decrementing AND the value of the red field is greater than
 *   0x00, the function will decrement the red filed by 1 for each structure in 
