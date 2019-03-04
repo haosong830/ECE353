@@ -10,15 +10,16 @@
 #include "driver_defines.h"
 #include "validate.h"
 
-//ADD CODE #2
+#include "pc_buffer.h"
 
-// ADD CODE #3
+#define BUFFER_SIZE 32
 
 /******************************************************************************
  * Global Variables
  *****************************************************************************/
 
-// ADD CODE #4
+// global variable of type PC_Buffer
+PC_Buffer Circular_Buffer;
 
 //*****************************************************************************
 //*****************************************************************************
@@ -196,7 +197,7 @@ main(void)
   put_string("* ECE353: ICE-PC-Buffer\n\r");
   put_string("**************************************\n\r");
   
-  // ADD CODE 10
+  pc_buffer_init( &Circular_Buffer, BUFFER_SIZE );
   
   if (pc_buffer_test_0(BUFFER_SIZE) )
   {
