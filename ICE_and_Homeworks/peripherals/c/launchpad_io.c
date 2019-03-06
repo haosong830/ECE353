@@ -65,7 +65,19 @@
 //*****************************************************************************
 static __inline void  port_f_enable_port(void)
 {
-  
+	//turn on clock gating for PORT F
+  SYSCTL->RCGCGPIO |= SYSCTL_RCGCGPIO_R5;
+	
+	// wait until clock is on
+	while ( (SYSCTL->PRGPIO & SYSCTL_PRGPIO_R5) == 0)
+	{
+	}
+	
+	// set LOCK register to 0x4C4F434B
+	GPIO_PORTF_LOCK_R = 0x4C4F434B ;
+	
+	//set the commit register
+	GPIO_PORTF_CR_R = 0xFF;
 }
 
 
@@ -84,7 +96,7 @@ static __inline void  port_f_enable_port(void)
 //*****************************************************************************
 static __inline void  port_f_digital_enable(uint8_t bit_mask)
 {
-
+	GPIOF->DEN |= bit_mask;
 }
 
 
@@ -103,7 +115,8 @@ static __inline void  port_f_digital_enable(uint8_t bit_mask)
 //*****************************************************************************
 static __inline void  port_f_enable_output(uint8_t bit_mask)
 {
-  
+	// writing 0 to DIR means  input
+	GPIOF->DIR |= bit_mask;
 }
 
 //*****************************************************************************
@@ -121,7 +134,9 @@ static __inline void  port_f_enable_output(uint8_t bit_mask)
 //*****************************************************************************
 static __inline void  port_f_enable_input(uint8_t bit_mask)
 {
-
+		// 0 = input
+		// flip the bit mask so we set the bits in the mask to 0
+		GPIOF->DIR |= ~bit_mask;
 }
 
 //*****************************************************************************
@@ -139,7 +154,7 @@ static __inline void  port_f_enable_input(uint8_t bit_mask)
 //*****************************************************************************
 static __inline void  port_f_enable_pull_up(uint8_t bit_mask)
 {
-
+	GPIOF->PUR = bit_mask;
 }
 
 //*****************************************************************************
@@ -152,7 +167,9 @@ static __inline void  port_f_enable_pull_up(uint8_t bit_mask)
 //*****************************************************************************
 void  lp_io_set_pin(uint8_t pin_number)
 {
-
+	// if want to enable pin 2 for example we want to OR EQUAL the port with
+	// 0000 0100, which we can get by shifting 0000 0010 left by 1
+	GPIOF->DATA |= (1<<pin_number);
 }
 
 //*****************************************************************************
@@ -165,7 +182,7 @@ void  lp_io_set_pin(uint8_t pin_number)
 //*****************************************************************************
 void  lp_io_clear_pin(uint8_t pin_number)
 {
-
+	GPIOF->DATA &= ~(1<<pin_number);
 }
 
 //*****************************************************************************
@@ -180,7 +197,16 @@ void  lp_io_clear_pin(uint8_t pin_number)
 //*****************************************************************************
 bool  lp_io_read_pin(uint8_t pin_number)
 {
-  
+		
+		if (GPIOF->DATA & (1<<pin_number))
+		{
+			return true;
+		}
+		
+		else
+		{
+			return false;
+		}
 }
 
 /*********************************************************************************
@@ -189,7 +215,22 @@ bool  lp_io_read_pin(uint8_t pin_number)
 *
 ********************************************************************************/
 void lp_io_init(void)
-{
-
+{	
+		// enable the RCGC for Port F
+		 port_f_enable_port();
+	
+		// configure the pins on Port F connected to the LEDS and
+	  // push buttons as digital pins
+		 port_f_digital_enable(RED_M | BLUE_M | GREEN_M | SW1_M | SW2_M);
+		
+	
+		// configure the pins connected to the LEDs as output
+		port_f_enable_output(RED_M | BLUE_M | GREEN_M);
+	
+		// configure the pins connected to the push buttons as inputs
+		port_f_enable_input(SW1_M | SW2_M);
+	
+		// enable the pullup resistors connected to the push buttons
+		port_f_enable_pull_up(SW1_M | SW2_M);
 }
 

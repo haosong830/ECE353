@@ -31,11 +31,11 @@
 #include "driver_defines.h"
 
 // ADD CODE 01
-#define   RED_BIT       0
-#define   BLUE_BIT      0
-#define   GREEN_BIT     0
+#define   RED_BIT       1
+#define   BLUE_BIT      2
+#define   GREEN_BIT     3
 #define   SW1_BIT       0
-#define   SW2_BIT       0
+#define   SW2_BIT       4
 
 #define   RED_M     (1 << RED_BIT)
 #define   BLUE_M    (1 << BLUE_BIT)
