@@ -137,65 +137,75 @@ void ice_port_f_fsm(void)
 {
 	
 	static LED_STATES state = ALL_OFF;
-  bool pin_logic_level;
+  bool button_sw1_pressed;
 	
   while(1)
   {
-      // Delay before entering the code to determine which FSM state to 
-      // transistion to.
-      debounce_wait();
+		// Delay before entering the code to determine which FSM state to 
+		// transistion to.
+		debounce_wait();
 		
-			// call function to detected button presses
-			sw1_debounce_fsm();
-			
-			pin_logic_level = lp_io_read_pin(SW1_BIT);
+		// call function to detect button presses
+		button_sw1_pressed = sw1_debounce_fsm();
 		
 		switch (state)
 		{
-			
 			case ALL_OFF:
 			{
-				if (pin_logic_level)
+				lp_io_clear_pin(RED_BIT);
+				lp_io_clear_pin(BLUE_BIT);
+				lp_io_clear_pin(GREEN_BIT);
+				
+				if (button_sw1_pressed)
 				{
-					lp_io_clear_pin(RED_BIT);
-					lp_io_clear_pin(BLUE_BIT);
-					lp_io_clear_pin(GREEN_BIT);
-					state = ALL_OFF;
-				}
-				else
-				{
-					state = RED_ON;
 					lp_io_set_pin(RED_BIT);
+					state = RED_ON;
 				}
+				else{state = ALL_OFF;}
+				break;
 			}
-			
 			case RED_ON:
 			{
+				lp_io_set_pin(RED_BIT);
 				
+				if (button_sw1_pressed)
+				{
+					lp_io_clear_pin(RED_BIT);
+					lp_io_set_pin(BLUE_BIT);
+					state = BLUE_ON;
+				}
+				else{state = RED_ON;}
+				break;
 			}
-			
 			case BLUE_ON:
 			{
+				lp_io_set_pin(BLUE_BIT);
 				
+				if (button_sw1_pressed)
+				{
+					lp_io_clear_pin(BLUE_BIT);
+					lp_io_set_pin(GREEN_BIT);
+					state = GREEN_ON;
+				}
+				else{state = BLUE_ON;}
+				break;
 			}
-			
 			case GREEN_ON:
 			{
-				
+				lp_io_set_pin(GREEN_BIT);
+
+				if (button_sw1_pressed){
+					state = ALL_OFF;
+				}
+				else{state = GREEN_ON;}
+				break;
 			}
-			
 			default:
 			{
-      while(1){};
+				while(1){};
 			}
-			
 		}
-		
   }
-	
-	
-	
-	
 }
 
 
