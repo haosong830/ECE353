@@ -368,11 +368,22 @@ bool  gpio_config_analog_enable(uint32_t baseAddr, uint8_t pins)
 {
   GPIOA_Type  *gpioPort;
 
-  // ADD CODE
   // Verify that the base address is a valid GPIO base address
   // using the verify_base_addr function provided above
-  
-  return true;
+	if (verify_base_addr(baseAddr))
+	{
+		// Type cast the base address to a GPIOA_Type pointer
+		gpioPort = (GPIOA_Type *) baseAddr;
+		// Enable as digital pin
+		gpioPort->AMSEL |= pins;
+		return true;
+	}
+	
+	else
+	{
+		return false;
+	}
+
 }
 
 //*****************************************************************************
@@ -380,11 +391,22 @@ bool  gpio_config_alternate_function(uint32_t baseAddr, uint8_t pins)
 {
   GPIOA_Type  *gpioPort;
 
-  // ADD CODE
   // Verify that the base address is a valid GPIO base address
   // using the verify_base_addr function provided above
-    
-  return true;
+	if (verify_base_addr(baseAddr))
+	{
+		// Type cast the base address to a GPIOA_Type pointer
+		gpioPort = (GPIOA_Type *) baseAddr;
+		// Enable pull down resistor
+		gpioPort -> AFSEL |= pins;
+		return true;
+	}
+	
+	else
+	{
+		return false;
+	}
+
 }
 
 
