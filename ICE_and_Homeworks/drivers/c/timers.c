@@ -96,9 +96,21 @@ bool gp_timer_wait(uint32_t base_addr, uint32_t ticks)
   // Type cast the base address to a TIMER0_Type struct
   gp_timer = (TIMER0_Type *)base_addr;
 
-  //*********************    
-  // ADD CODE
-  //*********************
+	// stop both timers A and B (16 bit timers)
+  gp_timer -> CTL &= ~(TIMER_CTL_TAEN | TIMER_CTL_TBEN);
+	
+	// set the # of clock cycles in Timer A 
+	gp_timer -> TAILR = ticks;
+	
+	// clears a Timer A timeout
+	gp_timer -> ICR = TIMER_ICR_TATOCINT;
+	
+	// starts only Timer A
+	gp_timer -> CTL |= TIMER_CTL_TAEN;
+	
+	// busy-waits until a Timer A timeout occurs
+	
+	while ( (gp_timer->RIS & TIMER_RIS_TATORIS) == 0) {}
   
   return true;
 }
@@ -145,9 +157,38 @@ bool gp_timer_config_32(uint32_t base_addr, uint32_t mode, bool count_up, bool e
   // Type cast the base address to a TIMER0_Type struct
   gp_timer = (TIMER0_Type *)base_addr;
     
-  //*********************    
-  // ADD CODE
-  //*********************
+	// stop both timers A and B (16 bit timers)
+  gp_timer -> CTL &= ~(TIMER_CTL_TAEN | TIMER_CTL_TBEN);
+		
+	// sets size of a General Purpose Register to be 32 bits wide
+	gp_timer -> CFG = TIMER_CFG_32_BIT_TIMER;
+		
+	// clear mode bits
+	gp_timer -> TAMR &= 0;
+	// set the timers mode based on passed in parameter
+	gp_timer -> TAMR = mode;
+		
+		
+	
+	// sets direction of General Purpose Timer based on count_up parameter
+	if (count_up)
+	{
+			gp_timer -> TAMR |= TIMER_TAMR_TACDIR;
+	}
+	else
+	{	
+			gp_timer -> TAMR &= ~(TIMER_TAMR_TACDIR);
+	}
+		
+	// enables or disables Timer A timeout interupts based on parameter
+	if (enable_interrupts) 
+	{
+		gp_timer -> IMR |= TIMER_IMR_TATOIM;
+	}
+	else 
+	{
+			gp_timer -> IMR &= ~(TIMER_IMR_TATOIM); 
+	}
     
     
   return true;  
