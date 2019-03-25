@@ -24,6 +24,8 @@
 uint16_t i;
 uint32_t j;
 
+// declare function
+void loopThroughArray(void);
 
 //*****************************************************************************
 // This is an ARRAY of strings.  If you wanted to access the 3rd string
@@ -56,6 +58,7 @@ void init_hardware(void)
 }
 
 
+
 void loopThroughArray(void)
 {
     // number of elements in COMMANDS array
@@ -82,9 +85,9 @@ int main(void)
 
 
     lcd_draw_image(
-        26,                       // X Pos
+        X_MAX,                       // X Pos
         space_shipWidthPixels,    // Image Horizontal Width
-        18,                       // Y Pos
+        Y_MAX,                       // Y Pos
         space_shipHeightPixels,   // Image Vertical Height
         space_shipBitmaps,        // Image
         LCD_COLOR_BLUE2,          // Foreground Color

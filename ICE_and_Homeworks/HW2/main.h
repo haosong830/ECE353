@@ -38,12 +38,10 @@
 // maybe put in other file
 #define X_MAX 214
 #define X_MIN 26
-// why not 304 and 16??
-#define Y_MAX 303
+#define Y_MAX 302
 #define Y_MIN 18
 
 extern void initialize_serial_debug(void);
 extern void put_string(char *data);
-extern void loopThroughArray(void);
 
 #endif
