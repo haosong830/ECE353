@@ -27,6 +27,7 @@
 // will be in range 0-100
 volatile int8_t DUTY_CYCLE;
 volatile bool ALERT_ADC_UPDATE;
+volatile bool ALERT_BLUE;
 
 
 
@@ -64,16 +65,11 @@ void SysTick_Handler(void)
 	// to a 1 or 0 based on value of DUTY_CYCLE
 	// If DUTY_CYCLE = 75, the GPIO pin should be set to 1
 	// for 7.5ms and to 0 for 2.5ms
-	if (count < DUTY_CYCLE)
-	{
-		// turn on blue LED
-		lp_io_set_pin(BLUE_BIT);
-	}
-	else
-	{
-		// turn off blue LED
-		lp_io_clear_pin(BLUE_BIT);
-	}
+	
+	// tell main to turn blue led on
+	if (count < DUTY_CYCLE){ALERT_BLUE = true;}
+	// tell main to turn blue led off
+	else {ALERT_BLUE = false;}
 	
 	count++;
 	
@@ -120,6 +116,16 @@ main(void)
   
   while(1)
   {
+	  
+		// turn blue LED on
+	  if (ALERT_BLUE)
+	  {
+		  lp_io_set_pin(BLUE_BIT);
+		
+	  }
+		// turn blue LED off
+		else {lp_io_clear_pin(BLUE_BIT);}
+		
 		// if true, update DUTY_CYCLE based on current value
 		// of the analog input connected to X direction of PS2 Joystick
     if (ALERT_ADC_UPDATE)
