@@ -24,6 +24,12 @@
 
 // ADD CODE
 
+// will be in range 0-100
+volatile int8_t DUTY_CYCLE;
+volatile bool ALERT_ADC_UPDATE;
+
+
+
 /*******************************************************************************
 * Function Name: configure_gpio_pins
 ********************************************************************************
@@ -40,21 +46,52 @@ void configure_hardware(void)
 }
 
 /*******************************************************************************
-* Function Name: 
+* Function Name: SysTick_Handler
 ********************************************************************************
 * Summary: SysTick Interrupt Service Routine
 *
 *
-* Return:
+* Return: NONE
 *  
 *
 *******************************************************************************/
-// ADD CODE
+void SysTick_Handler(void)
+{
+	uint32_t val;
+	static int count = 0;
+	
+	// set value of GPIO pin connected to the blue LED
+	// to a 1 or 0 based on value of DUTY_CYCLE
+	// If DUTY_CYCLE = 75, the GPIO pin should be set to 1
+	// for 7.5ms and to 0 for 2.5ms
+	if (count < DUTY_CYCLE)
+	{
+		// turn on blue LED
+		lp_io_set_pin(BLUE_BIT);
+	}
+	else
+	{
+		// turn off blue LED
+		lp_io_clear_pin(BLUE_BIT);
+	}
+	
+	count++;
+	
+	// Set ALERT_ADC_UPDATE to true once every 10ms
+	if (count == 100) 
+	{
+		ALERT_ADC_UPDATE = true;
+		count = 0;
+	}
+
+	// Clear the interrupt
+	val = SysTick->VAL;
+}
 
 /*******************************************************************************
 * Function Name: main
 ********************************************************************************
-* Summary: Controls the GREEN LED on the Tiva Launchpad using the PS2 Joystick to
+* Summary: Controls the Blue LED on the Tiva Launchpad using the PS2 Joystick to
 *          set the duty cycle of the LED.
 *
 *
@@ -83,7 +120,18 @@ main(void)
   
   while(1)
   {
-    // ADD CODE
+		// if true, update DUTY_CYCLE based on current value
+		// of the analog input connected to X direction of PS2 Joystick
+    if (ALERT_ADC_UPDATE)
+		{
+			// ps2_get_x() only sets lower 12 bits, 
+			// so max value is (2^12 - 1) = 4095
+			// get % by dividing by 4095
+			DUTY_CYCLE = ((ps2_get_x()) / 4095.0) * 100;
+			
+			// toggle ALERT_ADC_UPDATE
+			ALERT_ADC_UPDATE = false;
+		}
     
   }
 }
