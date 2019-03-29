@@ -22,18 +22,23 @@
 
 #include "main.h"
 
-// declare function
+// global variables for saucer x and y positions
+uint16_t xPos, yPos;
+
+// declare functions
 void loopThroughArray	(void);
-void drawSaucer_Up		(uint32_t num_pixels);
-void drawSaucer_Down	(uint32_t num_pixels);
-void drawSaucer_Left	(uint32_t num_pixels);
-void drawSaucer_Right	(uint32_t num_pixels);
+void command_Up			(uint32_t num_pixels);
+void command_Down		(uint32_t num_pixels);
+void command_Left		(uint32_t num_pixels);
+void command_Right		(uint32_t num_pixels);
 void pauseSaucer		(uint32_t pauseLength);
+void drawSaucer 		(uint16_t x, uint16_t y);
 
 //*****************************************************************************
 // This is an ARRAY of strings.  If you wanted to access the 3rd string
 // ("P10000"), you could do so using COMMANDS[2].
 //*****************************************************************************
+/*
 char *COMMANDS[] =
 {
     "P200000",
@@ -49,7 +54,8 @@ char *COMMANDS[] =
     "P1",
     "U142"
 };
-
+*/
+char *COMMANDS[] = {"U50", "U100", "R1000", "D1000", "L50"};
 //*****************************************************************************
 //*****************************************************************************
 void init_hardware(void)
@@ -64,18 +70,10 @@ void init_hardware(void)
 
 void loopThroughArray(void)
 {
-	// loop variable
-	uint8_t i;
-	
-	// X position to draw saucer
-	
-	
-	// Y position to draw saucer
-	
-	
+	// character indicating which command to do
 	char *commandLetter;
 	
-	// this double pointer will be used to store 
+	// This double pointer will be used to store 
 	// the command string from the COMMANDS array.
 	char **commandString = COMMANDS;
 	
@@ -85,6 +83,8 @@ void loopThroughArray(void)
 	
 	// numFromCommand_String converted to an int using atoi()
 	uint32_t numFromCommand_Int;
+	
+	char msg[80];
 
 	// Loop through COMMAND array, check first character of 
 	// array element, and skip if not U,D,L,R, or P. Perform command if valid.
@@ -101,8 +101,10 @@ void loopThroughArray(void)
 		*/
 		numFromCommand_String = *commandString + 1;
 		
-		// COMMANDS[i] will be the first character of the array element
-		commandLetter = COMMANDS[i];
+		// *commandString holds the whole command but when you set it 
+		// equal to a single char pointer, you get the first char of the 
+		// command it points to
+		commandLetter = *commandString;
 
 		/* Check if U,D,L,R, or P, or invalid. If valid, use atoi() to convert
 		 * the string after the first character into an integer, and call appropriate
@@ -111,30 +113,45 @@ void loopThroughArray(void)
 		
 		// Move saucer up (sub from y location) by specified number of pixels
 		if(*commandLetter == 'U')
-		{
+		{	
 			numFromCommand_Int = atoi(numFromCommand_String);
-			drawSaucer_Up(numFromCommand_Int);
+			sprintf(msg,"up pixels: %d\n",numFromCommand_Int);
+			put_string(msg);
+			command_Up(numFromCommand_Int);
 		}
 		
 		// Move saucer up (add to y location) by specified number of pixels
 		else if(*commandLetter == 'D')
 		{
 			numFromCommand_Int = atoi(numFromCommand_String);
-			drawSaucer_Down(numFromCommand_Int);
+			sprintf(msg,"down pixels: %d\n",numFromCommand_Int);
+			put_string(msg);
+			numFromCommand_Int = atoi(numFromCommand_String);
+			command_Down(numFromCommand_Int);
 		}
 		
 		// Move saucer left (sub from x location) by specified number of pixels
 		else if(*commandLetter == 'L')
 		{
 			numFromCommand_Int = atoi(numFromCommand_String);
-			drawSaucer_Left(numFromCommand_Int);
+			sprintf(msg,"left pixels: %d\n",numFromCommand_Int);
+			put_string(msg);
+			numFromCommand_Int = atoi(numFromCommand_String);
+			numFromCommand_Int = atoi(numFromCommand_String);
+			command_Left(numFromCommand_Int);
 		}
 		
 		// Move saucer right (add to x location) by specified number of pixels
 		else if(*commandLetter== 'R')
 		{
 			numFromCommand_Int = atoi(numFromCommand_String);
-			drawSaucer_Right(numFromCommand_Int);
+			sprintf(msg,"right pixels: %d\n",numFromCommand_Int);
+			put_string(msg);
+			numFromCommand_Int = atoi(numFromCommand_String);
+			numFromCommand_Int = atoi(numFromCommand_String);
+			command_Left(numFromCommand_Int);
+			numFromCommand_Int = atoi(numFromCommand_String);
+			command_Right(numFromCommand_Int);
 		}
 		
 		// Pause by specified duration using empty for loop
@@ -152,33 +169,133 @@ void loopThroughArray(void)
 	}
 }
 
-void drawSaucer_Up(uint32_t num_pixels)
-{
-
+// draw the saucer with passed in values of x and y
+void drawSaucer(uint16_t x, uint16_t y) 
+{		
+	// update x and y global variables
+	yPos = y;
+	xPos = x;
+	lcd_draw_image
+		(
+        x,                       		// X Pos
+        space_shipWidthPixels,    		// Image Horizontal Width
+        y,                    			// Y Pos
+        space_shipHeightPixels,   		// Image Vertical Height
+        space_shipBitmaps,        		// Image
+        LCD_COLOR_BLUE2,          		// Foreground Color
+        LCD_COLOR_WHITE           		// Background Color
+		);
 }
 
-void drawSaucer_Down(uint32_t num_pixels)
-{
-
+void command_Up(uint32_t num_pixels)
+{	
+	// loop variable
+	uint16_t i;
+	
+	// check if going to hit top of screen
+	if ((yPos - num_pixels) < Y_MIN){
+		// draw saucer up until reach top of screen
+		for(i = yPos; i >= Y_MIN; i--){
+			// keep x fixed, update y
+			drawSaucer(xPos,i);
+		}
+	}
+	else {
+		// must save because yPos is updated every iteration in the loop
+		uint16_t final_y = yPos-num_pixels;
+		// draw saucer up the correct # of pixels
+		// start at yPos and go until you hit (yPos - num_pixels)
+		for(i = yPos; i >= final_y; i--){
+			// keep x fixed, update y
+			drawSaucer(xPos, i);
+		}
+	}
 }
 
-void drawSaucer_Left(uint32_t num_pixels)
+void command_Down(uint32_t num_pixels)
 {
-
+	// loop variable
+	uint16_t i;
+	
+	// check if going to hit bottom top of screen
+	if ((yPos + num_pixels) > Y_MAX){
+		// draw saucer down until reach bottom of screen
+		for(i = yPos; i <= Y_MAX; i++){
+			// keep x fixed, update y
+			drawSaucer(xPos,i);
+		}
+	}
+	else {
+		// must save because yPos is updated every iteration in the loop
+		uint16_t final_y = yPos + num_pixels;
+		// draw saucer down the correct # of pixels
+		// start at yPos and go until you hit (yPos + num_pixels)
+		for(i = yPos; i <= final_y; i++){
+			// keep x fixed, update y
+			drawSaucer(xPos, i);
+		}
+	}
 }
 
-void drawSaucer_Right(uint32_t num_pixels)
+void command_Left(uint32_t num_pixels)
 {
-
+	// loop variable
+	uint16_t i;
+	
+	// check if going to hit left of screen
+	if ((xPos - num_pixels) < X_MIN){
+		// draw saucer left until reach left of screen
+		for(i = xPos; i >= X_MIN; i--){
+			// update x, keep y fixed
+			drawSaucer(i,yPos);
+		}
+	}
+	else {
+		// must save because xPos is updated every iteration in the loop
+		uint16_t final_x = xPos - num_pixels;
+		// draw saucer left the correct # of pixels
+		// start at xPos and go until you hit (xPos - num_pixels)
+		for(i = xPos; i >= final_x; i--){
+			// update x, keep y fixed
+			drawSaucer(i,yPos);
+		}
+	}
 }
+
+void command_Right(uint32_t num_pixels)
+{
+	// loop variable
+	uint16_t i;
+	
+	// check if going to hit right of screen
+	if ((xPos + num_pixels) > X_MAX){
+		// draw saucer right until reach right of screen
+		for(i = xPos; i <= X_MAX; i++){
+			// update x, keep y fixed
+			drawSaucer(i,yPos);
+		}
+	}
+	else {
+		// must save because xPos is updated every iteration in the loop
+		uint16_t final_x = xPos + num_pixels;
+		// draw saucer right the correct # of pixels
+		// start at xPos and go until you hit (xPos + num_pixels)
+		for(i = xPos; i <= final_x; i++){
+			// update x, keep y fixed
+			drawSaucer(i,yPos);
+		}
+	}
+}
+
 
 void pauseSaucer(uint32_t pauseLength)
 {
-	// use a while loop to wait until we've 
+	uint32_t i;
+	// use an empty for loop to wait until we've 
 	// paused enough time
-	while (pauseLength != 0)
+	for (i = 0; i < pauseLength; i++)
 	{
-		pauseLength--;
+		continue;
 	}
 }
 
@@ -195,17 +312,18 @@ int main(void)
     put_string("Kevin Wilson\n\r");
     put_string("******************************\n\r");
 	
-	
 	// draw saucer in middle of screen first
+	xPos = 120;
+	yPos = 302;
 	lcd_draw_image
 		(
-        120,                       	// X Pos
-        space_shipWidthPixels,    	// Image Horizontal Width
-        160,                    	// Y Pos
-        space_shipHeightPixels,   	// Image Vertical Height
-        space_shipBitmaps,        	// Image
-        LCD_COLOR_BLUE2,          	// Foreground Color
-        LCD_COLOR_WHITE           	// Background Color
+        xPos,                       	// X Pos
+        space_shipWidthPixels,    		// Image Horizontal Width
+        yPos,                    		// Y Pos
+        space_shipHeightPixels,   		// Image Vertical Height
+        space_shipBitmaps,        		// Image
+        LCD_COLOR_BLUE2,          		// Foreground Color
+        LCD_COLOR_WHITE           		// Background Color
 		);
 	
 	// loop through the COMMANDS array which 
