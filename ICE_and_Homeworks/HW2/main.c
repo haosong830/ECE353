@@ -38,7 +38,7 @@ void drawSaucer 		(uint16_t x, uint16_t y);
 // This is an ARRAY of strings.  If you wanted to access the 3rd string
 // ("P10000"), you could do so using COMMANDS[2].
 //*****************************************************************************
-/*
+
 char *COMMANDS[] =
 {
     "P200000",
@@ -54,8 +54,7 @@ char *COMMANDS[] =
     "P1",
     "U142"
 };
-*/
-char *COMMANDS[] = {"U50", "U100", "R1000", "D1000", "L50"};
+
 //*****************************************************************************
 //*****************************************************************************
 void init_hardware(void)
@@ -65,7 +64,6 @@ void init_hardware(void)
     lcd_config_screen();
     lcd_clear_screen(LCD_COLOR_WHITE);
 }
-
 
 
 void loopThroughArray(void)
@@ -84,8 +82,6 @@ void loopThroughArray(void)
 	// numFromCommand_String converted to an int using atoi()
 	uint32_t numFromCommand_Int;
 	
-	char msg[80];
-
 	// Loop through COMMAND array, check first character of 
 	// array element, and skip if not U,D,L,R, or P. Perform command if valid.
 	// Stop when the pointer doesn't point to anything in the array
@@ -115,17 +111,12 @@ void loopThroughArray(void)
 		if(*commandLetter == 'U')
 		{	
 			numFromCommand_Int = atoi(numFromCommand_String);
-			sprintf(msg,"up pixels: %d\n",numFromCommand_Int);
-			put_string(msg);
 			command_Up(numFromCommand_Int);
 		}
 		
 		// Move saucer up (add to y location) by specified number of pixels
 		else if(*commandLetter == 'D')
 		{
-			numFromCommand_Int = atoi(numFromCommand_String);
-			sprintf(msg,"down pixels: %d\n",numFromCommand_Int);
-			put_string(msg);
 			numFromCommand_Int = atoi(numFromCommand_String);
 			command_Down(numFromCommand_Int);
 		}
@@ -134,22 +125,12 @@ void loopThroughArray(void)
 		else if(*commandLetter == 'L')
 		{
 			numFromCommand_Int = atoi(numFromCommand_String);
-			sprintf(msg,"left pixels: %d\n",numFromCommand_Int);
-			put_string(msg);
-			numFromCommand_Int = atoi(numFromCommand_String);
-			numFromCommand_Int = atoi(numFromCommand_String);
 			command_Left(numFromCommand_Int);
 		}
 		
 		// Move saucer right (add to x location) by specified number of pixels
 		else if(*commandLetter== 'R')
 		{
-			numFromCommand_Int = atoi(numFromCommand_String);
-			sprintf(msg,"right pixels: %d\n",numFromCommand_Int);
-			put_string(msg);
-			numFromCommand_Int = atoi(numFromCommand_String);
-			numFromCommand_Int = atoi(numFromCommand_String);
-			command_Left(numFromCommand_Int);
 			numFromCommand_Int = atoi(numFromCommand_String);
 			command_Right(numFromCommand_Int);
 		}
@@ -192,8 +173,9 @@ void command_Up(uint32_t num_pixels)
 	// loop variable
 	uint16_t i;
 	
-	// check if going to hit top of screen
-	if ((yPos - num_pixels) < Y_MIN){
+	// check if going to hit top of screen. Have to cast to int
+	// because may get negative number
+	if ((int)(yPos - num_pixels) < Y_MIN){
 		// draw saucer up until reach top of screen
 		for(i = yPos; i >= Y_MIN; i--){
 			// keep x fixed, update y
@@ -243,7 +225,7 @@ void command_Left(uint32_t num_pixels)
 	uint16_t i;
 	
 	// check if going to hit left of screen
-	if ((xPos - num_pixels) < X_MIN){
+	if ((int)(xPos - num_pixels) < X_MIN){
 		// draw saucer left until reach left of screen
 		for(i = xPos; i >= X_MIN; i--){
 			// update x, keep y fixed
@@ -293,9 +275,9 @@ void pauseSaucer(uint32_t pauseLength)
 	uint32_t i;
 	// use an empty for loop to wait until we've 
 	// paused enough time
-	for (i = 0; i < pauseLength; i++)
+	for (i = 0; i <= pauseLength; i++)
 	{
-		continue;
+		//EMPTY
 	}
 }
 
