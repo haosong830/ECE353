@@ -415,19 +415,32 @@ bool  gpio_config_port_control(uint32_t baseAddr, uint32_t mask, uint32_t pctl)
 {
   GPIOA_Type  *gpioPort;
 
-  // ADD CODE
+  
   // Verify that the base address is a valid GPIO base address
   // using the verify_base_addr function provided above
-  
-  // The mask parameter is used to identify which bits of the port control
-  // register are going to be modified.  These bits should first be set to
-  // zero
-  
-  // The pctl parameter is the new value that will be written into the bits
-  // idenfifed in the mask parameter.
-  //
-   
-  return true;
+	if (verify_base_addr(baseAddr))
+	{
+		// Type cast the base address to a GPIOA_Type pointer
+		gpioPort = (GPIOA_Type *) baseAddr;
+		
+			
+		// The mask parameter is used to identify which bits of the port control
+		// register are going to be modified.  These bits should first be set to
+		// zero
+		gpioPort -> PCTL &= ~mask;
+		
+		// The pctl parameter is the new value that will be written into the bits
+		gpioPort -> PCTL |= pctl;
+
+		 return true;
+	}
+	
+	else 
+	{
+		return false;
+	}
+ 
+ 
 }
 
 /******************************************************************************

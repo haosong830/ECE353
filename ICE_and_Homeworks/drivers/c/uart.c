@@ -274,7 +274,7 @@ bool uart_init(uint32_t uart_base, bool enable_rx_irq, bool enable_tx_irq)
     UART0_Type *uart = (UART0_Type *)(uart_base);
     uint32_t rcgc_mask;
     uint32_t pr_mask;
-    
+
     if (verify_uart_base(uart_base) == false)
     {
       return false;
@@ -283,7 +283,52 @@ bool uart_init(uint32_t uart_base, bool enable_rx_irq, bool enable_tx_irq)
     rcgc_mask = uart_get_rcgc_mask(uart_base);
     pr_mask = uart_get_pr_mask(uart_base);
     
-    // ADD CODE
+    // enable UART clock gating and wait for it to become ready
+		SYSCTL -> RCGCUART |=  rcgc_mask;
+		while ( (SYSCTL -> PRUART & pr_mask) == 0) {}
+			
+		// disable the UART
+		uart -> CTL &= ~UART_CTL_UARTEN;
+		
+		// set baud rate to be 115200
+	  //uart -> IBRD = (int)baud_rate; 27
+		uart -> IBRD = 27;
+		uart -> FBRD =  8;
+		//uart -> FBRD = (int)(((baud_rate) - (int)baud_rate) * 64 + 0.5); 8
+		
+		// configure UART for 8N1
+		uart -> LCRH = UART_LCRH_WLEN_8 | UART_LCRH_FEN;
+			
+			
+			
+ if( enable_rx_irq)
+ {
+   // <ADD CODE> Turn on the UART Interrupts for Rx, and Rx Timeout
+	 // Turn on the UART Interrupts  for Tx, Rx, and Rx Timeout
+   uart->IM = UART_IM_RXIM | UART_IM_RTIM;
+ }
+
+ if( enable_tx_irq)
+ {
+   // DO Nothing until next ICE
+ }
+
+ if ( enable_rx_irq || enable_tx_irq )
+ {
+   // Set the priority to 0.  
+	 // Call uart_get_irq_num(uart_base) to   
+	 // get the correct IRQn_Type
+    NVIC_SetPriority(uart_get_irq_num(uart_base), 0);
+ 
+   // Enable the NVIC.  call uart_get_irq_num(uart_base) to get
+   // the correct IRQn_Type
+    NVIC_EnableIRQ(uart_get_irq_num(uart_base));
+ }
+			
+			
+		// re-enable UART so it transmits and receives data
+		uart -> CTL = (UART_CTL_UARTEN|UART_CTL_RXE|UART_CTL_TXE);
+			
     
     return true;
 

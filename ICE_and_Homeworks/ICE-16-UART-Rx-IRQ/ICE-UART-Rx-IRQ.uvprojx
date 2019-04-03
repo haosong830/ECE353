@@ -10,7 +10,8 @@
       <TargetName>ICE-UART-Rx-IRQ</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
-      <pCCUsed>5060300::V5.06 update 3 (build 300)::ARMCC</pCCUsed>
+      <pCCUsed>5060528::V5.06 update 5 (build 528)::ARMCC</pCCUsed>
+      <uAC6>0</uAC6>
       <TargetOption>
         <TargetCommonOption>
           <Device>TM4C123GH6PM</Device>
@@ -420,14 +421,14 @@
               <FilePath>..\drivers\c\uart.c</FilePath>
             </File>
             <File>
-              <FileName>uart.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\drivers\include\uart.h</FilePath>
-            </File>
-            <File>
               <FileName>driver_defines.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\drivers\include\driver_defines.h</FilePath>
+            </File>
+            <File>
+              <FileName>uart.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\drivers\include\uart.h</FilePath>
             </File>
           </Files>
         </Group>

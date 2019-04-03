@@ -30,8 +30,18 @@ PC_Buffer UART0_Rx_Buffer;
 bool init_serial_debug(bool enable_rx_irq, bool enable_tx_irq)
 {
   
-  // ADD CODE  
   // Initialize the GPIO pins used for the serial debug interface
+	gpio_enable_port(GPIOA_BASE);
+	gpio_config_digital_enable(GPIOA_BASE, PA0 | PA1);
+	gpio_config_alternate_function(GPIOA_BASE, PA0 | PA1);
+	gpio_config_enable_input(GPIOA_BASE, SERIAL_DBG_RX_PIN );
+	gpio_config_enable_output(GPIOA_BASE, SERIAL_DBG_TX_PIN );
+	gpio_config_port_control(GPIOA_BASE,
+														GPIO_PCTL_PA0_M | GPIO_PCTL_PA1_M,  
+														GPIO_PCTL_PA1_U0TX| GPIO_PCTL_PA0_U0RX);
+	
+	// Turn on the UART Interrupts  for Tx, Rx, and Rx Timeout
+   // UART0->IM = UART_IM_RXIM | UART_IM_TXIM | UART_IM_RTIM;
   
   Rx_Interrupts_Enabled = enable_rx_irq;
   Tx_Interrupts_Enabled = enable_tx_irq;
@@ -54,7 +64,8 @@ bool init_serial_debug(bool enable_rx_irq, bool enable_tx_irq)
  ****************************************************************************/
 int serial_debug_rx(PC_Buffer *rx_buffer, bool block)
 {
-   int c;
+  int c;
+	char *data;
 
    while (pc_buffer_empty(rx_buffer))
    {
@@ -66,6 +77,10 @@ int serial_debug_rx(PC_Buffer *rx_buffer, bool block)
    // Remove data from the circular buffer.  Make sure this is an
    // atomic operation.  Disable ALL interrupts when modifying the circular 
    // buffer.  See main.c to determine how to enable/disable interrupts.
+	 DisableInterrupts();
+	 pc_buffer_remove(rx_buffer, data);
+	 c = *data;
+	 EnableInterrupts();
 
    return c;
 }
@@ -195,14 +210,24 @@ __INLINE static void UART_Rx_Flow(uint32_t uart_base, PC_Buffer *rx_buffer)
 {
   UART0_Type *uart = (UART0_Type *)(uart_base);
   
-  // ADD CODE  
-  
-  // Remove entries from the RX FIFO and place them in the circular buffer.  Return
+  // Remove entries from the RX FIFO and place 
+	// them in the circular buffer.  Return
   // once the RX FIFO is empty.
-
+	
+	char data;
+	
+	// while the RX FIFO is not empty
+	while (!(uart->FR & UART_FR_RXFE))
+	{
+		// remove from RX FIFO
+		data = uart->DR;
+		// add to circular buffer
+		pc_buffer_add(rx_buffer, data);
+	}
   // Clear the RX interrupts so it can trigger again when the hardware 
   // FIFO becomes full
-  
+	
+	uart -> ICR  = (UART_ICR_RXIC | UART_ICR_RTIC);
 }
 
 //*****************************************************************************
@@ -244,12 +269,12 @@ void UART0_Handler(void)
 
     // ADD CODE  
     // Read the interrupt status of the UART
-    status = 0; /*modify*/
+    status = UART0 -> MIS; 
 
     // set rx_mask to detect both Rx related interrupts.
-    rx_mask = 0; /*modify*/
+    rx_mask = UART_MIS_RXMIS  | UART_MIS_RTMIS; 
   
-    if ( status & rx_mask)
+    if (status & rx_mask)
     {
        UART_Rx_Flow(UART0_BASE, &UART0_Rx_Buffer);
     }
