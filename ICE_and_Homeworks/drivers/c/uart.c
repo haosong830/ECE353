@@ -297,14 +297,15 @@ bool uart_init(uint32_t uart_base, bool enable_rx_irq, bool enable_tx_irq)
 		//uart -> FBRD = (int)(((baud_rate) - (int)baud_rate) * 64 + 0.5); 8
 		
 		// configure UART for 8N1
-		uart -> LCRH = UART_LCRH_WLEN_8 | UART_LCRH_FEN;
-			
+		uart -> LCRH |= UART_LCRH_WLEN_8 | UART_LCRH_FEN;
+		
+		// Configure the FIFO Interrupt Levels
+		//uart->IFLS = UART_IFLS_RX7_8 | UART_IFLS_TX1_8;
 			
 			
  if( enable_rx_irq)
  {
    // <ADD CODE> Turn on the UART Interrupts for Rx, and Rx Timeout
-	 // Turn on the UART Interrupts  for Tx, Rx, and Rx Timeout
    uart->IM = UART_IM_RXIM | UART_IM_RTIM;
  }
 
@@ -327,7 +328,7 @@ bool uart_init(uint32_t uart_base, bool enable_rx_irq, bool enable_tx_irq)
 			
 			
 		// re-enable UART so it transmits and receives data
-		uart -> CTL = (UART_CTL_UARTEN|UART_CTL_RXE|UART_CTL_TXE);
+		uart -> CTL |= (UART_CTL_UARTEN|UART_CTL_RXE|UART_CTL_TXE);
 			
     
     return true;
