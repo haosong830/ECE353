@@ -305,13 +305,13 @@ bool uart_init(uint32_t uart_base, bool enable_rx_irq, bool enable_tx_irq)
 			
  if( enable_rx_irq)
  {
-   // <ADD CODE> Turn on the UART Interrupts for Rx, and Rx Timeout
-   uart->IM = UART_IM_RXIM | UART_IM_RTIM;
+   
+   uart->IM |= UART_IM_RXIM | UART_IM_RTIM;
  }
 
  if( enable_tx_irq)
  {
-   // DO Nothing until next ICE
+	 uart->IM |= UART_IM_TXIM;
  }
 
  if ( enable_rx_irq || enable_tx_irq )
