@@ -450,9 +450,19 @@ bool  gpio_config_open_drain(uint32_t gpioBase, uint8_t pins)
 {
   GPIOA_Type  *gpioPort;
 
-  // ADD CODE
   // Verify that the base address is a valid GPIO base address
-  // using the verify_base_addr function provided above
+  	if (verify_base_addr(gpioBase))
+	{
+		// Type cast the base address to a GPIOA_Type pointer
+		gpioPort = (GPIOA_Type *) gpioBase;
+		gpioPort -> ODR |= pins;
+		return true;
+	}
+	
+	else 
+	{
+		return false;
+	}
     
   return true;
 }
