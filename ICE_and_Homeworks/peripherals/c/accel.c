@@ -9,7 +9,7 @@ extern bool spiVerifyBaseAddr(uint32_t base);
 //*****************************************************************************
 static __INLINE void  accel_CSN_low(void)
 {
-  // ADD CODE
+  ACCEL_CS_PORT -> DATA &= ~ACCEL_CS_PIN;
 }
 
 //*****************************************************************************
@@ -17,7 +17,7 @@ static __INLINE void  accel_CSN_low(void)
 //*****************************************************************************
 static __INLINE void  accel_CSN_high(void)
 {
-  // ADD CODE
+ ACCEL_CS_PORT -> DATA |= ACCEL_CS_PIN;
 }
 
 
@@ -27,9 +27,21 @@ static __INLINE void  accel_CSN_high(void)
 //*****************************************************************************
 static __INLINE uint8_t accel_reg_read(uint8_t reg)
 {
-  // ADD CODE
-
-  return 0; // Modify to return the register value
+	uint8_t readData[2];
+	uint8_t tx_data[2]; 
+	
+	// set bit 8 of the first byte to 1
+	tx_data[0] = reg | ACCEL_SPI_READ;
+	//tx_data[1] is garbage value
+	
+	accel_CSN_low();
+	
+	spiTx(ACCEL_SPI_BASE, tx_data, 2, readData);
+	
+	accel_CSN_high();
+	// In a register read, the 2nd byte of data contains value
+	// of the register
+  return readData[1];
 }
 
 //*****************************************************************************
@@ -37,7 +49,19 @@ static __INLINE uint8_t accel_reg_read(uint8_t reg)
 //*****************************************************************************
 static __INLINE void accel_reg_write(uint8_t reg, uint8_t data)
 {
-  // ADD CODE
+	// set bit 8 of the first byte to 1
+	uint8_t tx_data[2];
+	uint8_t rx_data[2];
+	tx_data[1] = data;
+	tx_data[0] =  reg & ~ACCEL_SPI_WRITE_N;
+	
+	accel_CSN_low();
+	
+	spiTx(ACCEL_SPI_BASE, tx_data, 2, rx_data);
+	
+	accel_CSN_high();
+	
+  return;
 }
 
 
@@ -46,8 +70,13 @@ static __INLINE void accel_reg_write(uint8_t reg, uint8_t data)
 //*****************************************************************************
 int16_t accel_read_x(void)
 {
-  // ADD CODE
-  return 0; // Modify to return the x value
+  uint8_t lowByte;
+	uint8_t highByte;
+	
+	lowByte = accel_reg_read(ACCEL_OUTX_L_XL);
+	highByte = accel_reg_read(ACCEL_OUTX_H_XL);
+	
+  return (int16_t)(highByte << 8) + lowByte; 
   
 } 
 
@@ -56,8 +85,13 @@ int16_t accel_read_x(void)
 //*****************************************************************************
 int16_t accel_read_y(void)
 {
-  // ADD CODE
-  return 0; // Modify to return the Y value
+  uint8_t lowByte;
+	uint8_t highByte;
+	
+	lowByte = accel_reg_read(ACCEL_OUTY_L_XL);
+	highByte = accel_reg_read(ACCEL_OUTY_H_XL);
+	
+  return (int16_t)(highByte << 8) + lowByte; 
   
 }
 
@@ -66,8 +100,13 @@ int16_t accel_read_y(void)
 //*****************************************************************************
 int16_t accel_read_z(void)
 {
-  // ADD CODE
-  return 0; // Modify to return the Z value
+  uint8_t lowByte;
+	uint8_t highByte;
+	
+	lowByte = accel_reg_read(ACCEL_OUTZ_L_XL);
+	highByte = accel_reg_read(ACCEL_OUTZ_H_XL);
+	
+  return (int16_t)(highByte << 8) + lowByte; 
   
 }
 
