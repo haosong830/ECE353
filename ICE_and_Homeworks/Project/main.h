@@ -1,4 +1,4 @@
-// Copyright (c) 2016, Joe Krachey
+// Copyright (c) 2014, Joe Krachey
 // All rights reserved.
 //
 // Redistribution and use in binary form, with or without modification, 
@@ -19,48 +19,58 @@
 // WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
 // EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#ifndef __MAIN_H__
+#define __MAIN_H__
 
-#ifndef __WS2812B_EFFECTS_H__
-#define __WS2812B_EFFECTS_H__
-#include <stdbool.h>
-#include <stdlib.h>
+#include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include "driver_defines.h"
+#include <stdlib.h>
+
+
+
+#include "TM4C123.h"
+
+// LCD stuff
+#include "images.h"
+
+
+// all drivers
 #include "gpio_port.h"
+#include "adc.h"
+#include "driver_defines.h"
+#include "i2c.h"
+#include "interrupts.h"
+#include "pc_buffer.h"
+#include "spi.h"
+#include "timers.h"
+#include "uart.h"
 
-#define NUMBER_LEDS     8
-#define RAINBOW_SEQ_LEN 12
-#define DIV_FACTOR      2
+// all peripherals
+#include "accel.h"
+#include "ece353_images.h"
+#include "ft6x06.h"
+#include "io_expander.h"
+#include "launchpad_io.h"
+#include "ps2.h"
+#include "spi_select.h"
+#include "wireless.h"
+#include "ws2812b.h"
+#include "ws2812b_effects.h"
+#include "validate.h"
+#include "serial_debug.h"
+#include "eeprom.h"
+#include "lcd.h"
+#include "lcd_images.h"
 
-#define WS2812B_GPIO_BASE     GPIOD_BASE
-#define WS2812B_GPIO_ADDR     (GPIOD_BASE  + 0x3FC)
-#define WS2812B_GPIO_PIN      PD7
-#define WS2812B_GPIO_PIN_NUM  7
 
-//typedef struct WS2812B_t WS2812B_t;
+// maybe put in other file
+#define X_MAX 214
+#define X_MIN 26
+#define Y_MAX 302
+#define Y_MIN 18
 
-//struct WS2812B_t
-//{
-//     uint8_t green;
-//     uint8_t red;
-//     uint8_t blue;
-//}__attribute__ ((packed)); 
+#define ADDR_START    256
+#define NUM_BYTES      20
 
-bool ws2812b_init(void);
-void ws2812b_leds_rainbow(void);
-
-/********************************************************************************
-* Summary:
-*
-* Parameters:
-*  void
-*
-* Return:
-*  void
-*
-*******************************************************************************/ 
-void ws2812b_leds_off(void);
-  
 #endif
-
