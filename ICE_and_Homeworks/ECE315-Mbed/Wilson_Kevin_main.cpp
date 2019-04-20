@@ -14,7 +14,6 @@ PA2 = red LED
 PA1 = BUZZER
 */
 
-Ticker button_check;
 Ticker led_flipper;
 
 DigitalOut Red_Led(PA_2);
@@ -47,7 +46,10 @@ void ticker_handler(void)
 //***************************************************************
 void write_start_frame(void)
 {
-    // ADD CODE
+    APA102C.write(0x00);
+	  APA102C.write(0x00);
+	  APA102C.write(0x00);
+	  APA102C.write(0x00);
 }
 
 //***************************************************************
@@ -60,8 +62,10 @@ void write_start_frame(void)
 //***************************************************************
 void write_led(uint8_t blue, uint8_t green, uint8_t red)
 {
-    // ADD CODE
-
+    APA102C.write(0xFF);
+	  APA102C.write(blue);
+	  APA102C.write(green);
+	  APA102C.write(red);
 }
 
 //***************************************************************
@@ -69,7 +73,10 @@ void write_led(uint8_t blue, uint8_t green, uint8_t red)
 //***************************************************************
 void write_end_frame(void)
 { 
-   // ADD CODE
+    APA102C.write(0xFF);
+	  APA102C.write(0xFF);
+	  APA102C.write(0xFF);
+	  APA102C.write(0xFF);
 }
 
 //***************************************************************
@@ -84,7 +91,6 @@ void initialize_w_leds(uint8_t num_leds, uint8_t blue, uint8_t green, uint8_t re
         write_led(blue, green, red);
     }
     write_end_frame();
-
 }
 
 
@@ -95,24 +101,34 @@ int main() {
     int i;
     APA102C.format(8,3);
     APA102C.frequency(5000000);
+		
+	  
     
   //Initialize ticker for blinking red LED
 	//The address of the function to be attached (flip) and the interval (1 second)
 	led_flipper.attach(&ticker_handler, 1.0);
 	
-    
-    // ADD CODE - Initialize the Buzzer period to be 500uS
-    
-    initialize_w_leds(47, 0x00, 0x00, 0xFF);
+	// Initialize buzzer period to be 2000Hz 
+	Buzzer.period(0.0005f);
+	
+	// turn on all front leds
+	initialize_w_leds(47, 0x00, 0x00, 0xFF);
+	
+	wait(5);
+		
     
     while(1) {
-		
-		 Red_Led = !Red_Led; // led_flipper will interrupt it to call ticker_handler 
-        
-        // If the push button is being pressed, turn the buzzer on by setting
-        // the pulse width to 250uS
-        
-        // Else turn the buzzer off by setting the pulse width to 0.
-        
+				
+			// If button pressed, make sound
+			if (!PushButton) {
+			Buzzer.write(0.50f);
+			initialize_w_leds(47, 0xFF, 0x00, 0x00);
+			} 
+			else {
+			Buzzer.write(0.0f);
+		  initialize_w_leds(47, 0x00, 0xFF, 0x00);
+			}   
     }
+		
+		
 }
