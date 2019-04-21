@@ -26,6 +26,7 @@
 
 /* Bitmap info for space_ship */
 extern const uint8_t space_shipBitmaps[];
+extern const uint8_t img[];
 extern const uint8_t space_shipWidthPages;
 extern const uint8_t space_shipWidthPixels;
 extern const uint8_t space_shipHeightPixels;

@@ -62,7 +62,8 @@ void init_hardware(void)
     initialize_serial_debug();
     lcd_config_gpio();
     lcd_config_screen();
-    lcd_clear_screen(LCD_COLOR_WHITE);
+    lcd_clear_screen(LCD_COLOR_BLUE);
+		//accel_initialize();
 }
 
 
@@ -168,6 +169,7 @@ void loopThroughArray(void)
 	}
 }
 
+
 // draw the saucer with passed in values of x and y
 void drawSaucer(uint16_t x, uint16_t y) 
 {		
@@ -177,14 +179,15 @@ void drawSaucer(uint16_t x, uint16_t y)
 	lcd_draw_image
 		(
         x,                       		// X Pos
-        space_shipWidthPixels,    		// Image Horizontal Width
+        hotdog_width,    		// Image Horizontal Width
         y,                    			// Y Pos
-        space_shipHeightPixels,   		// Image Vertical Height
-        space_shipBitmaps,        		// Image
+        hotdog_height,   		// Image Vertical Height
+        hotdog_Bitmap,        		// Image
         LCD_COLOR_BLUE2,          		// Foreground Color
         LCD_COLOR_WHITE           		// Background Color
 		);
 }
+
 
 void command_Up(uint32_t num_pixels)
 {	
@@ -303,34 +306,111 @@ void pauseSaucer(uint32_t pauseLength)
 //*****************************************************************************
 int main(void)
 {
-    init_hardware();
 
+	
+	// draw saucer in middle of screen first
+
+	
+	// loop through the COMMANDS array which 
+	// will call appropriate functions to draw the saucer
+    //loopThroughArray();
+	
+
+	int i;
+	int32_t x,y,z;
+	char msg[80];
+	
+		xPos = 120;
+	  yPos = 160;
+     
+    //initialize_serial_debug();
+		init_hardware();
+	
+	
+		lcd_draw_image
+		(
+        xPos,                       	// X Pos
+        hotdog_width,    		// Image Horizontal Width
+        yPos,                    		// Y Pos
+        hotdog_height,   		// Image Vertical Height
+        hotdog_Bitmap,        		// Image
+        LCD_COLOR_RED,          		// Foreground Color
+        LCD_COLOR_BLUE          		// Background Color
+		);
+		
 
     put_string("\n\r");
     put_string("******************************\n\r");
     put_string("ECE353 HW2 Spring 2019\n\r");
     put_string("Kevin Wilson\n\r");
     put_string("******************************\n\r");
-	
-	// draw saucer in middle of screen first
-	xPos = 120;
-	yPos = 302;
-	lcd_draw_image
-		(
-        xPos,                       	// X Pos
-        space_shipWidthPixels,    		// Image Horizontal Width
-        yPos,                    		// Y Pos
-        space_shipHeightPixels,   		// Image Vertical Height
-        space_shipBitmaps,        		// Image
-        LCD_COLOR_BLUE2,          		// Foreground Color
-        LCD_COLOR_WHITE           		// Background Color
-		);
-	
-	// loop through the COMMANDS array which 
-	// will call appropriate functions to draw the saucer
-    loopThroughArray();
+    
+		
+		
+	 //Read accelerometer
+  while(1)
+  {
+		
+		// Read the Accelerometer data
+		for(i=0; i < 10000; i++)
+		{
+			x = accel_read_x();
+		};
+		     
+			// Check x values
+		
+			sprintf(msg,"X: %d\n\r",x);
+			if (x > MOVE_LEFT)
+			{
+				//put_string("Move left\n\r");
+				xPos--;
+				continue;
+				//put_string(msg);
+			}
+			else if (x < MOVE_RIGHT)
+			{
+				xPos++;
+				continue;
+				//put_string("Move right\n\r");
+				//put_string(msg);
+			}
+			else
+			{
+				put_string("stay still X\n\r");
+			}
+			
+		// Read the Accelerometer data
+		for(i=0; i < 10000; i++)
+		{
+			z = accel_read_z();
+		};
+		
+			// Check z values
+			sprintf(msg,"Z: %d\n\r",z);
+			if (z > MOVE_UP)
+			{
+				//put_string(msg);
+				//put_string("Move up\n\r");
+				//printf("Move up\n\r");
+				yPos--;
+				continue;
+			}
+			else if (z < MOVE_DOWN)
+			{
+				//put_string(msg);
+				//put_string("Move down\n\r");
+				yPos++;
+				continue;
+			}
+			else
+			{
+				put_string(msg);
+				put_string("stay still Y\n\r");
+			}      
+  }
+  // Reach infinite loop
+   // while(1) {};
+}
 
  
-    // Reach infinite loop
-    while(1) {};
-}
+    

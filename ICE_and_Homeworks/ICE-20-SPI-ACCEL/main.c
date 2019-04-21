@@ -51,6 +51,7 @@ main(void)
 		z = accel_read_y();
             
         sprintf(msg,"X: %d\n\r",x);
+				//printf("%s",msg);
         put_string(msg);
         sprintf(msg,"Y: %d\n\r",y);
         //put_string(msg);

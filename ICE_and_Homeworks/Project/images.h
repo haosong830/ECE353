@@ -25,9 +25,8 @@
 #include <stdint.h>
 
 /* Bitmap info for space_ship */
-extern const uint8_t space_shipBitmaps[];
-extern const uint8_t space_shipWidthPages;
-extern const uint8_t space_shipWidthPixels;
-extern const uint8_t space_shipHeightPixels;
+extern const uint8_t hotdog_Bitmap[];
+extern const uint8_t hotdog_width;
+extern const uint8_t hotdog_height;
 
 #endif

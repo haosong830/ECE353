@@ -62,7 +62,7 @@ void init_hardware(void)
     initialize_serial_debug();
     lcd_config_gpio();
     lcd_config_screen();
-    lcd_clear_screen(LCD_COLOR_WHITE);
+    lcd_clear_screen(LCD_COLOR_GREEN);
 }
 
 
@@ -296,21 +296,21 @@ int main(void)
 	
 	// draw saucer in middle of screen first
 	xPos = 120;
-	yPos = 302;
+	yPos = 160;
 	lcd_draw_image
 		(
         xPos,                       	// X Pos
-        space_shipWidthPixels,    		// Image Horizontal Width
+        64,    		// Image Horizontal Width
         yPos,                    		// Y Pos
-        space_shipHeightPixels,   		// Image Vertical Height
-        space_shipBitmaps,        		// Image
-        LCD_COLOR_BLUE2,          		// Foreground Color
-        LCD_COLOR_WHITE           		// Background Color
+        60,   		// Image Vertical Height
+        img,        		// Image
+        LCD_COLOR_RED,          		// Foreground Color
+        LCD_COLOR_YELLOW           		// Background Color
 		);
 	
 	// loop through the COMMANDS array which 
 	// will call appropriate functions to draw the saucer
-    loopThroughArray();
+   // loopThroughArray();
 
  
     // Reach infinite loop
