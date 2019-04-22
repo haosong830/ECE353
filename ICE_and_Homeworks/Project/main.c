@@ -62,8 +62,8 @@ void init_hardware(void)
     initialize_serial_debug();
     lcd_config_gpio();
     lcd_config_screen();
-    lcd_clear_screen(LCD_COLOR_BLUE);
-		//accel_initialize();
+    lcd_clear_screen(LCD_COLOR_WHITE);
+		accel_initialize();
 }
 
 
@@ -179,10 +179,10 @@ void drawSaucer(uint16_t x, uint16_t y)
 	lcd_draw_image
 		(
         x,                       		// X Pos
-        hotdog_width,    		// Image Horizontal Width
+        space_shipWidthPixels,    		// Image Horizontal Width
         y,                    			// Y Pos
-        hotdog_height,   		// Image Vertical Height
-        hotdog_Bitmap,        		// Image
+        space_shipHeightPixels,   		// Image Vertical Height
+        space_shipBitmaps,        		// Image
         LCD_COLOR_BLUE2,          		// Foreground Color
         LCD_COLOR_WHITE           		// Background Color
 		);
@@ -330,12 +330,12 @@ int main(void)
 		lcd_draw_image
 		(
         xPos,                       	// X Pos
-        hotdog_width,    		// Image Horizontal Width
+        space_shipWidthPixels,    		// Image Horizontal Width
         yPos,                    		// Y Pos
-        hotdog_height,   		// Image Vertical Height
-        hotdog_Bitmap,        		// Image
+        space_shipHeightPixels,   		// Image Vertical Height
+        space_shipBitmaps,        		// Image
         LCD_COLOR_RED,          		// Foreground Color
-        LCD_COLOR_BLUE          		// Background Color
+        LCD_COLOR_YELLOW          		// Background Color
 		);
 		
 
@@ -408,8 +408,10 @@ int main(void)
 				put_string("stay still Y\n\r");
 			}      
   }
+	
+	
   // Reach infinite loop
-   // while(1) {};
+    //while(1) {};
 }
 
  

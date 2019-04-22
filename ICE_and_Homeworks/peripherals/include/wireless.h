@@ -216,6 +216,18 @@ wireless_com_status_t
   bool      blockOnEmpty,
   uint32_t  *data
   );
+	
+
+// Struct to configure wireless
+typedef struct {
+  uint32_t  wireless_spi_base;
+  uint8_t   payload_size;
+  uint8_t   channel;
+  uint32_t  csn_base;
+  uint8_t   csn_pin;
+  uint32_t  ce_base;
+  uint8_t   ce_pin;
+} WIRELESS_CONFIG;
 
 
 //*****************************************************************************
@@ -247,5 +259,21 @@ void wireless_initialize(void);
 // Test Rx and Tx of the wireless radio
 //*****************************************************************************
 void wireless_test(void);
+
+
+//*****************************************************************************
+// Configures the pins and peripherals used to sedn data to the wireless 
+// driver.  The eliminates the need to hardcode a specific SPI peripheral 
+// into the driver software.
+//*****************************************************************************
+void wireless_set_pin_config(
+  uint32_t  wireless_spi_base,  
+  uint8_t   payload_size,
+  uint8_t   channel,
+  uint32_t  csn_base,
+  uint8_t   csn_pin,
+  uint32_t  ce_base,
+  uint8_t   ce_pin
+);
 
 #endif
