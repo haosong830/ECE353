@@ -5,3 +5,8 @@
 *.o
 *.crf
 *.dep
+*.chedd
+*.d
+*.o
+*.lst
+*.lnp
