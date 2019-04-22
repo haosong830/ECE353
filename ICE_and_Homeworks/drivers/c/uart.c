@@ -297,11 +297,12 @@ bool uart_init(uint32_t uart_base, bool enable_rx_irq, bool enable_tx_irq)
 		//uart -> FBRD = (int)(((baud_rate) - (int)baud_rate) * 64 + 0.5); 8
 		
 		// configure UART for 8N1
-		uart -> LCRH |= UART_LCRH_WLEN_8;
-		uart -> LCRH &= ~UART_LCRH_FEN;	
+		//uart -> LCRH |= UART_LCRH_WLEN_8;
+		//uart -> LCRH &= ~UART_LCRH_FEN;	
+		uart -> LCRH =  UART_LCRH_WLEN_8 | UART_LCRH_FEN; 
 		
 		// Configure the FIFO Interrupt Levels
-		//uart->IFLS = UART_IFLS_RX7_8 | UART_IFLS_TX1_8;
+		uart->IFLS = UART_IFLS_RX7_8 | UART_IFLS_TX1_8;
 			
 			
  if( enable_rx_irq)

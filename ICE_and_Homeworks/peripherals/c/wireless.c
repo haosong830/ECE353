@@ -687,4 +687,3 @@ bool wireless_configure_device(
   }
   
 } 
-© 2019 GitHub, Inc.
