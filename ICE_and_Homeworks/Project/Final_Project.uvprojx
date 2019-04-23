@@ -458,14 +458,14 @@
           <GroupName>Lib</GroupName>
           <Files>
             <File>
-              <FileName>ECE353-Validate.lib</FileName>
-              <FileType>4</FileType>
-              <FilePath>..\lib\ECE353-Validate.lib</FilePath>
-            </File>
-            <File>
               <FileName>hw2_f18.lib</FileName>
               <FileType>4</FileType>
-              <FilePath>..\HW2\hw2_f18.lib</FilePath>
+              <FilePath>..\libs\hw2_f18.lib</FilePath>
+            </File>
+            <File>
+              <FileName>ECE353-Validate.lib</FileName>
+              <FileType>4</FileType>
+              <FilePath>..\libs\ECE353-Validate.lib</FilePath>
             </File>
           </Files>
         </Group>

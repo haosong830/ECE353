@@ -66,6 +66,16 @@ void init_hardware(void)
 		accel_initialize();
 }
 
+void eeprom_init_read_write()
+{
+	uint16_t addr;
+	uint8_t read_val;
+	
+	char name1[80] = "Student 1: Kevin Wilson\n";
+	char name2[80] = "Student 2: Haoson Ma\n";
+	char teamNum[80] = "Team number: 13\n";
+}
+
 
 void DisableInterrupts(void)
 {
