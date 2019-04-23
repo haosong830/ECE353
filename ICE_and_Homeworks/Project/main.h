@@ -22,11 +22,14 @@
 #ifndef __MAIN_H__
 #define __MAIN_H__
 
+
+
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
 
+void eeprom_init_write_read(void);
 
 
 #include "TM4C123.h"

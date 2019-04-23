@@ -402,6 +402,11 @@
               <FileType>5</FileType>
               <FilePath>.\main.h</FilePath>
             </File>
+            <File>
+              <FileName>game_eeprom.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\game_eeprom.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -460,12 +465,12 @@
             <File>
               <FileName>hw2_f18.lib</FileName>
               <FileType>4</FileType>
-              <FilePath>..\libs\hw2_f18.lib</FilePath>
+              <FilePath>..\lib\hw2_f18.lib</FilePath>
             </File>
             <File>
               <FileName>ECE353-Validate.lib</FileName>
               <FileType>4</FileType>
-              <FilePath>..\libs\ECE353-Validate.lib</FilePath>
+              <FilePath>..\lib\ECE353-Validate.lib</FilePath>
             </File>
           </Files>
         </Group>
