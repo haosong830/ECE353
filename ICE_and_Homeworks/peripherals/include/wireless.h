@@ -254,6 +254,7 @@ bool wireless_configure_device(
 //  
 //*****************************************************************************
 void wireless_initialize(void);
+void wireless_test(void);
 
 //*****************************************************************************
 // Test Rx and Tx of the wireless radio

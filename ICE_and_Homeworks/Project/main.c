@@ -24,62 +24,40 @@
 
 // global variables for saucer x and y positions
 uint16_t xPos, yPos;
-
+extern volatile int16_t x, y, z;
+extern bool alert_T1A;
 // from git
 uint8_t myID[]      = { '1', '1', '1', '1', '1'};
 uint8_t remoteID[]  = { '2', '2', '2', '2', '2'};
+
+
 
 //*****************************************************************************
 // This is an ARRAY of strings.  If you wanted to access the 3rd string
 // ("P10000"), you could do so using COMMANDS[2].
 //*****************************************************************************
 
-// from git
-void rfInit(void)
-{  
-  wireless_set_pin_config(
-    RF_SPI_BASE,
-    RF_PAYLOAD_SIZE,
-    RF_CHANNEL,
-    RF_CS_BASE,
-    RF_CS_PIN,
-    RF_CE_GPIO_BASE,
-    RF_CE_PIN
-  );
-  
-  gpio_enable_port(RF_GPIO_BASE);
-  
-  // Configure SPI CLK
-  gpio_config_digital_enable(  RF_GPIO_BASE, RF_CLK_PIN);
-  gpio_config_alternate_function(RF_GPIO_BASE, RF_CLK_PIN);
-  gpio_config_port_control(     RF_GPIO_BASE, RF_SPI_CLK_PCTL_M ,RF_CLK_PIN_PCTL);
-  
-  // Configure SPI MISO
-  gpio_config_digital_enable(RF_GPIO_BASE, RF_MISO_PIN);
-  gpio_config_alternate_function(RF_GPIO_BASE, RF_MISO_PIN);
-  gpio_config_port_control(RF_GPIO_BASE, RF_SPI_MISO_PCTL_M, RF_MISO_PIN_PCTL);
-  
-  // Configure SPI MOSI
-  gpio_config_digital_enable(RF_GPIO_BASE, RF_MOSI_PIN);
-  gpio_config_alternate_function(RF_GPIO_BASE, RF_MOSI_PIN);
-  gpio_config_port_control(RF_GPIO_BASE, RF_SPI_MOSI_PCTL_M, RF_MOSI_PIN_PCTL);
-  
-  // Configure CS to be a normal GPIO pin that is controlled 
-  // explicitly by software
-    gpio_enable_port(RF_CS_BASE);
-  gpio_config_digital_enable(RF_CS_BASE,RF_CS_PIN);
-  gpio_config_enable_output(RF_CS_BASE,RF_CS_PIN);
-  
-  // Configure CE Pin as an output
-  
-  gpio_enable_port(RF_CE_GPIO_BASE);
-  gpio_config_digital_enable(RF_CE_GPIO_BASE,RF_CE_PIN);
-  gpio_config_enable_output(RF_CE_GPIO_BASE,RF_CE_PIN);
-
-  
-  initialize_spi(RF_SPI_BASE, 0, 10);
-  RF_CE_PERIH->DATA |= (1 << 1);
+void print_string_toLCD(char string[], 
+		uint16_t x_start, 
+	uint16_t y_start, 
+	uint16_t fColor, 
+	uint16_t bColor)
+{
+	char c1, c2;
+	int i, xPos;
+	xPos = x_start;
+	c1 = ' ';
+	
+	for (i = 0; i < strlen(string); i++)
+	{
+		c2 = string[i];
+		lcd_draw_image(xPos, alphabet_Descriptors[c2-c1].widthBits, y_start, 11,
+									&alphabet_Bitmap[alphabet_Descriptors[c2-c1].offset], fColor, bColor);
+		
+		xPos = alphabet_Descriptors[c2-c1].widthBits/2 + 4;
+	}
 }
+
 
 //*****************************************************************************
 //*****************************************************************************
@@ -100,6 +78,10 @@ void init_hardware(void)
     lcd_config_gpio();
     lcd_config_screen();
     lcd_clear_screen(LCD_COLOR_WHITE);
+	
+	  gp_timer_config_32(TIMER0_BASE, ONE_SHOT, false, false, SEC_ONE);
+		gp_timer_config_32(TIMER1_BASE, PERIODIC, false, true, FIVE_SEC);
+		//gp_timer_config_16(TIMER4_BASE, PERIODIC, false, true, EIGHT_MS, PRESCLR);
 
 		// I2C touchscreen
 		// ft6x06_init();
@@ -109,12 +91,9 @@ void init_hardware(void)
 		 
 		 // joystick
 		 //ps2_initialize(); 
-		 
-		 	// from git for wireless stuff
-		// rfInit();
-		 
+	
     //enable accelerometer
-    //accel_initialize();
+    accel_initialize();
 
     EnableInterrupts();
 }
@@ -172,6 +151,7 @@ int main(void)
   
   wireless_configure_device(myID, remoteID ) ;
 	*/
+		char start[] = "Hello";
     int i;
     int32_t x, y, z;
     char msg[80];
@@ -189,6 +169,16 @@ int main(void)
 		
     eeprom_init_write_read();
 		
+		while (1)
+		{
+			if (alert_T1A)
+			{
+				printf("hello");
+				alert_T1A = false;
+			}
+		}
+		
+		
 		/*
 		 lcd_draw_image
     (
@@ -202,67 +192,49 @@ int main(void)
     );
 		*/
 		
-		
-lcd_draw_box(
-  50, //x start
-  30, // x len
-  50, //y s start
-  30, // y len
-  LCD_COLOR_BLUE, //border
-  LCD_COLOR_RED, //fill
-  1
-);
-
-lcd_draw_box(
-  100, 
-  30, 
-  100, 
-  30, 
-  LCD_COLOR_RED, //border
-  LCD_COLOR_BLUE, //fill
-  2
-);
-
- // Reach infinite loop
- while(1) {};
-	 
-    /*
+    
     //Read accelerometer
+		/*
     while(1)
     {
 
     // Read the Accelerometer data
     for(i=0; i < 10000; i++)
     {
-      x = accel_read_x();
+			sprintf(msg,"X: %d\n\r",x);
+			put_string(msg);
+			printf("hello");
+     // x = accel_read_x();
     };
 
       // Check x values
 
-      sprintf(msg,"X: %d\n\r",x);
+      //sprintf(msg,"X: %d\n\r",x);
       if (x > MOVE_LEFT)
       {
-        //put_string("Move left\n\r");
+        put_string("Move left\n\r");
         xPos--;
         continue;
-        //put_string(msg);
+        put_string(msg);
       }
       else if (x < MOVE_RIGHT)
       {
         xPos++;
         continue;
-        //put_string("Move right\n\r");
-        //put_string(msg);
+        put_string("Move right\n\r");
+        put_string(msg);
       }
       else
       {
         put_string("stay still X\n\r");
       }
+			*/
 
+			/*
     // Read the Accelerometer data
     for(i=0; i < 10000; i++)
     {
-      z = accel_read_z();
+      //z = accel_read_z();
     };
 
       // Check z values
@@ -287,8 +259,29 @@ lcd_draw_box(
         put_string(msg);
         put_string("stay still Y\n\r");
       }
-    }
-    */
+			*/
+   // }
+
+    
+		
+		/*
+	
+		print_string_toLCD(start, 50, 50, LCD_COLOR_BLACK, LCD_COLOR_BLUE);
+		
+		
+lcd_draw_box(
+  xPos, //x start
+  30, // x len
+  yPos, //y s start
+  30, // y len
+  LCD_COLOR_BLUE, //border
+  LCD_COLOR_RED, //fill
+  1
+);
+		*/
+
+ // Reach infinite loop
+ //while(1) {};
    
 }
 

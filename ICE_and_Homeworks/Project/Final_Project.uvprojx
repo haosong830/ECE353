@@ -405,6 +405,16 @@
               <FileType>1</FileType>
               <FilePath>.\game_eeprom.c</FilePath>
             </File>
+            <File>
+              <FileName>alphabet.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\alphabet.c</FilePath>
+            </File>
+            <File>
+              <FileName>alphabet.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\alphabet.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

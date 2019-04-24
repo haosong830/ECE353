@@ -6,7 +6,6 @@
 
 #include "driver_defines.h"
 
-
 //*****************************************************************************
 // Configure a general purpose timer to be a 32-bit timer.  
 //
@@ -24,15 +23,28 @@
 //
 //The function returns true if the base_addr is a valid general purpose timer
 //*****************************************************************************
-bool gp_timer_config_32(uint32_t base_addr, uint32_t mode, bool count_up, bool enable_interrupts);
+bool gp_timer_config_32(uint32_t base_addr, uint32_t mode, bool count_up, bool enable_interrupts, uint32_t ticks);
 
-
+bool gp_timer_config_16(uint32_t base_addr, uint32_t mode, bool count_up, bool enable_interrupts, uint32_t ticks, uint8_t presclr);
 //*****************************************************************************
 // Waits for 'ticks' number of clock cycles and then returns.
 //
 //The function returns true if the base_addr is a valid general purpose timer
 //*****************************************************************************
+
+volatile extern int16_t x,y,z;
+
 bool gp_timer_wait(uint32_t base_addr, uint32_t ticks);
 
+void enableTimerIRQ(uint32_t base);
+	
+IRQn_Type timerA_get_irq_num(uint32_t base);
+	
+void timer4A_Handler(void);
+	
+void timer1A_Handler(void);
 
-#endif
+
+#endif /* __TIMERS_H_ */
+
+

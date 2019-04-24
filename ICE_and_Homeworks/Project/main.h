@@ -30,9 +30,11 @@
 #include <stdlib.h>
 
 void eeprom_init_write_read(void);
+void print_string_toLCD(char string[], uint16_t x_start, uint16_t y_start, uint16_t fColor, uint16_t bColor);
 
 
 #include "TM4C123.h"
+#include "alphabet.h"
 
 // LCD stuff
 #include "images.h"
@@ -81,6 +83,11 @@ void eeprom_init_write_read(void);
 #define ADDR_START    256
 #define NUM_BYTES      20
 
-#define   RF_CE_PERIH         GPIOD
+#define SEC_ONE     50000000
+#define FIVE_SEC	  250000000
+#define EIGHT_MS		65536
+#define PRESCLR			6
+#define ONE_SHOT    TIMER_TAMR_TAMR_1_SHOT
+#define PERIODIC		TIMER_TAMR_TAMR_PERIOD
 
 #endif

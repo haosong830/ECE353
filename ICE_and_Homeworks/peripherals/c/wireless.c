@@ -2,7 +2,7 @@
 
 extern void spiTx(uint32_t base, uint8_t *dataIn, int size, uint8_t *dataOut);
 extern bool spiVerifyBaseAddr(uint32_t base);
-
+int byte_count = 0;
 
 WIRELESS_CONFIG wirelessPinConfig;
 
@@ -121,9 +121,10 @@ static __INLINE uint8_t wireless_reg_read(uint8_t reg)
 	wireless_CSN_low();
 	spiTx(wirelessPinConfig.wireless_spi_base, dataIn, 2, dataOut);
 	wireless_CSN_high();
-	
+	byte_count+=2;
 	return dataOut[1];
 }
+
 
 //*****************************************************************************
 // ADD CODE
@@ -154,8 +155,18 @@ static __INLINE void wireless_reg_write(uint8_t reg, uint8_t data)
 	wireless_CSN_low();
 	spiTx(wirelessPinConfig.wireless_spi_base, dataIn, 2, dataOut);
 	wireless_CSN_high();
+	byte_count+=2;
 }
 
+//*****************************************************************************
+// ADD CODE
+// This function writes 5 bytes of data to the TX_ADDR register found on page
+// 60 of the nRF24L01+ data sheet.  
+//
+// Use spiTx() to send the data via the SPI interface.  This function can be
+// found in spi.c.  You will also need to use wireless_CSN_low() and 
+// wireless_CSN_high() to manually set the SPI chip select.
+//*****************************************************************************
 //*****************************************************************************
 // ADD CODE
 // This function writes 5 bytes of data to the TX_ADDR register found on page
@@ -181,6 +192,7 @@ static __INLINE void wireless_set_tx_addr(uint8_t  *tx_addr)
 	wireless_CSN_low();
 	spiTx(wirelessPinConfig.wireless_spi_base, dataIn, 6, dataOut);
 	wireless_CSN_high();
+	byte_count+=6;
 }
 
 //*****************************************************************************
@@ -206,6 +218,7 @@ static __INLINE void wireless_tx_data_payload( uint32_t data)
 	wireless_CSN_low();
 	spiTx(wirelessPinConfig.wireless_spi_base, dataIn, 5, dataOut);
 	wireless_CSN_high();
+	byte_count+=5;
 }
 
 //*****************************************************************************
@@ -232,6 +245,7 @@ static __INLINE void wireless_rx_data_payload( uint32_t *data)
 	data[1] = dataOut[3];
 	data[2] = dataOut[2];
 	data[3] = dataOut[1];
+	byte_count+=6;
 }
 
 //****************************************************************************
@@ -266,6 +280,7 @@ static __INLINE int32_t wireless_set_rx_addr(
   wireless_CSN_low();
   spiTx(wirelessPinConfig.wireless_spi_base,dataIn, 6, dataOut);
   wireless_CSN_high();
+	byte_count+=6;
   return 0;
 }
 
@@ -283,6 +298,7 @@ static __INLINE void wireless_flush_tx_fifo( void)
     wireless_CSN_low();
     spiTx(wirelessPinConfig.wireless_spi_base,dataIn, 1, dataOut);
     wireless_CSN_high();
+		byte_count+=1;
 }
 
 
@@ -298,6 +314,7 @@ static __INLINE void wireless_flush_rx_fifo( void )
     wireless_CSN_low();
     spiTx(wirelessPinConfig.wireless_spi_base,dataIn, 1, dataOut);
     wireless_CSN_high();
+		byte_count+=1;
 }
 
 
@@ -406,7 +423,7 @@ static __INLINE uint8_t wireless_get_status( void )
   wireless_CSN_low();
   spiTx(wirelessPinConfig.wireless_spi_base,dataIn, 1, dataOut);
   wireless_CSN_high();
-  
+  byte_count+=1;
   return dataOut[0];
 }
 
@@ -685,5 +702,103 @@ bool wireless_configure_device(
   {
     return false ;
   }
+}
+	
+	//*****************************************************************************
+// Used to initialize the Nordic nRF24L01+ radio.  The GPIO pins and SPI 
+// interface are both configured.
+//
+// Configuration Info
+//		Fill out relevant information in boardUtil.h.  boardUtil.h defines 
+//		how various peripherals are physically connected to the board.
+//  
+//*****************************************************************************
+void wireless_initialize()
+{  
+  gpio_enable_port(RF_GPIO_BASE);
   
-} 
+  // Configure SPI CLK
+  gpio_config_digital_enable(RF_GPIO_BASE, RF_CLK_PIN);
+  gpio_config_alternate_function(RF_GPIO_BASE, RF_CLK_PIN);
+  gpio_config_port_control(RF_GPIO_BASE, RF_SPI_CLK_PCTL_M, RF_CLK_PIN_PCTL);
+  
+  // Configure SPI MISO
+  gpio_config_digital_enable(RF_GPIO_BASE, RF_MISO_PIN);
+  gpio_config_alternate_function(RF_GPIO_BASE, RF_MISO_PIN);
+  gpio_config_port_control(RF_GPIO_BASE, RF_SPI_MISO_PCTL_M, RF_MISO_PIN_PCTL);
+  
+  // Configure SPI MOSI
+  gpio_config_digital_enable(RF_GPIO_BASE, RF_MOSI_PIN);
+  gpio_config_alternate_function(RF_GPIO_BASE, RF_MOSI_PIN);
+  gpio_config_port_control(RF_GPIO_BASE, RF_SPI_MOSI_PCTL_M, RF_MOSI_PIN_PCTL);
+  
+  // Configure CS to be a normal GPIO pin that is controlled 
+  // explicitly by software
+  gpio_enable_port(RF_CS_BASE);
+  gpio_config_digital_enable(RF_CS_BASE,RF_CS_PIN);
+  gpio_config_enable_output(RF_CS_BASE,RF_CS_PIN);
+  
+  // Configure CE Pin as an output  
+  gpio_enable_port(RF_CE_GPIO_BASE);
+  gpio_config_digital_enable(RF_CE_GPIO_BASE,RF_CE_PIN);
+  gpio_config_enable_output(RF_CE_GPIO_BASE,RF_CE_PIN);
+
+  initialize_spi( RF_SPI_BASE, 0, 10);
+  RF_CE_PORT->DATA |= RF_CE_PIN;
+}
+
+//*****************************************************************************
+// Test Rx and Tx of the wireless radio
+//*****************************************************************************
+void wireless_test(void)
+{
+	uint8_t myID[]      = { '3', '5', '3', '3', '3'};
+	uint8_t remoteID[]  = { '3', '5', '3', '4', '4'};
+	wireless_com_status_t status;
+	int i = 0;
+	int j = 0;
+	uint32_t data;
+	
+	printf("=== Starting RF Test ===\n\r");
+	printf("\t Set the Demo to Rx mode\n\r");
+	
+	wireless_configure_device(myID, remoteID ) ;
+	
+	while ( i < 20)
+	{
+		printf("Sending %i\n\r",i);
+		status = wireless_send_32(false, false, i);
+		i++;
+		
+		for(j = 0; j < 5000000; j++)
+		{
+			// just count
+		}
+	}
+	
+  printf("\t Set the Demo to Tx mode\n\r");
+	for(j = 0; j < 50000000; j++)
+	{
+		// just count
+	}
+	
+  i = 0;	
+	while ( i < 20)
+	{
+		status =  wireless_get_32(false, &data);
+		
+		if(status == NRF24L01_RX_SUCCESS)
+		{
+				printf("Received: %d\n\r", data);
+				i++;
+		}
+		for(j = 0; j < 5000000; j++)
+		{
+			// just count
+		}
+	}
+	
+	 printf("=== Ending RF Test ===\n\r");
+	
+}
+
