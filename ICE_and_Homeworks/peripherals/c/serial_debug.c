@@ -42,7 +42,7 @@ bool init_serial_debug(bool enable_rx_irq, bool enable_tx_irq)
 														
 	
 	// Turn on the UART Interrupts  for Tx, Rx, and Rx Timeout
-   // UART0->IM = UART_IM_RXIM | UART_IM_TXIM | UART_IM_RTIM;
+   //UART0->IM = UART_IM_RXIM | UART_IM_TXIM | UART_IM_RTIM;
   
   Rx_Interrupts_Enabled = enable_rx_irq;
   Tx_Interrupts_Enabled = enable_tx_irq;

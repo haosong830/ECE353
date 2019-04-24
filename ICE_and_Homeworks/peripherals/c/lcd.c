@@ -387,26 +387,25 @@ void lcd_draw_box(
 )
 {
 	uint16_t y_index,x_index;
-	lcd_set_pos(x_start, x_start+x_len, y_start, y_start+y_len);
 	
-	for (y_index = y_start; y_index <= y_start+y_len; y_index++) 
+	lcd_set_pos(x_start, x_start+x_len, y_start, y_start+y_len);
+	for (y_index = y_start; y_index < y_start + y_len; y_index++) 
 	{
 		for (x_index = x_start; x_index <= x_start+x_len; x_index++) 
 		{
 			// logic or when to fill in box and not draw border
 			if ((y_index >= border_width+y_start) && (y_index < y_start + y_len-border_width)
-					 && (x_index >= border_width+x_start) && (x_index < x_start+x_len-border_width))
+					 && (x_index >= border_width+x_start) && (x_index <= x_start+x_len-border_width))
 			{
-				printf("FILL: x = %d, y = %d", x_index, y_index);
 				lcd_write_data_u16(fill_color);
 			}
 			//otherwise draw border around square
-		else
-		{
-				printf("BORDER: x = %d, y = %d", x_index, y_index);
+			else
+			{
 				lcd_write_data_u16(border_color);
-		}
+			}
 		}
 	}
+	return;
 }
 

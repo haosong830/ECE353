@@ -10,11 +10,13 @@ void eeprom_init_write_read()
     char reset[80] = "Please press SW2 to get student info\n"
                      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";
 
-
+		
     char name1[80] = "Student 1: Kevin Wilson\n";
     char name2[80] = "Student 2: Haosong Ma\n";
     char teamNum[80] = "Team number: 13\n";
-
+		
+		//printf("hello");
+		put_string("Kevin Wilson\n\r");
 
     // Overwrite name1,name2, and teamNum in eeprom
     for(addr = ADDR_START; addr < ADDR_START + 80; addr++)

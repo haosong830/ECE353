@@ -81,4 +81,6 @@ void eeprom_init_write_read(void);
 #define ADDR_START    256
 #define NUM_BYTES      20
 
+#define   RF_CE_PERIH         GPIOD
+
 #endif

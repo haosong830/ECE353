@@ -25,35 +25,61 @@
 // global variables for saucer x and y positions
 uint16_t xPos, yPos;
 
-// declare functions
-void loopThroughArray (void);
-void command_Up     (uint32_t num_pixels);
-void command_Down   (uint32_t num_pixels);
-void command_Left   (uint32_t num_pixels);
-void command_Right    (uint32_t num_pixels);
-void pauseSaucer    (uint32_t pauseLength);
-void drawSaucer     (uint16_t x, uint16_t y);
+// from git
+uint8_t myID[]      = { '1', '1', '1', '1', '1'};
+uint8_t remoteID[]  = { '2', '2', '2', '2', '2'};
 
 //*****************************************************************************
 // This is an ARRAY of strings.  If you wanted to access the 3rd string
 // ("P10000"), you could do so using COMMANDS[2].
 //*****************************************************************************
 
-char *COMMANDS[] =
-{
-    "P200000",
-    "R500",
-    "P10000",
-    "U1000",
-    "P5000",
-    "L2000",
-    "P2500",
-    "D2000",
-    "P1250",
-    "R94",
-    "P1",
-    "U142"
-};
+// from git
+void rfInit(void)
+{  
+  wireless_set_pin_config(
+    RF_SPI_BASE,
+    RF_PAYLOAD_SIZE,
+    RF_CHANNEL,
+    RF_CS_BASE,
+    RF_CS_PIN,
+    RF_CE_GPIO_BASE,
+    RF_CE_PIN
+  );
+  
+  gpio_enable_port(RF_GPIO_BASE);
+  
+  // Configure SPI CLK
+  gpio_config_digital_enable(  RF_GPIO_BASE, RF_CLK_PIN);
+  gpio_config_alternate_function(RF_GPIO_BASE, RF_CLK_PIN);
+  gpio_config_port_control(     RF_GPIO_BASE, RF_SPI_CLK_PCTL_M ,RF_CLK_PIN_PCTL);
+  
+  // Configure SPI MISO
+  gpio_config_digital_enable(RF_GPIO_BASE, RF_MISO_PIN);
+  gpio_config_alternate_function(RF_GPIO_BASE, RF_MISO_PIN);
+  gpio_config_port_control(RF_GPIO_BASE, RF_SPI_MISO_PCTL_M, RF_MISO_PIN_PCTL);
+  
+  // Configure SPI MOSI
+  gpio_config_digital_enable(RF_GPIO_BASE, RF_MOSI_PIN);
+  gpio_config_alternate_function(RF_GPIO_BASE, RF_MOSI_PIN);
+  gpio_config_port_control(RF_GPIO_BASE, RF_SPI_MOSI_PCTL_M, RF_MOSI_PIN_PCTL);
+  
+  // Configure CS to be a normal GPIO pin that is controlled 
+  // explicitly by software
+    gpio_enable_port(RF_CS_BASE);
+  gpio_config_digital_enable(RF_CS_BASE,RF_CS_PIN);
+  gpio_config_enable_output(RF_CS_BASE,RF_CS_PIN);
+  
+  // Configure CE Pin as an output
+  
+  gpio_enable_port(RF_CE_GPIO_BASE);
+  gpio_config_digital_enable(RF_CE_GPIO_BASE,RF_CE_PIN);
+  gpio_config_enable_output(RF_CE_GPIO_BASE,RF_CE_PIN);
+
+  
+  initialize_spi(RF_SPI_BASE, 0, 10);
+  RF_CE_PERIH->DATA |= (1 << 1);
+}
 
 //*****************************************************************************
 //*****************************************************************************
@@ -66,9 +92,8 @@ void init_hardware(void)
     // UART IRQs can be anbled using the two paramters to the function.
     //************************************************************************
     init_serial_debug(true, true);
-
+	
     eeprom_init();
-
     // initialize launchpad
     lp_io_init();
     //enable LCD stuff
@@ -76,6 +101,18 @@ void init_hardware(void)
     lcd_config_screen();
     lcd_clear_screen(LCD_COLOR_WHITE);
 
+		// I2C touchscreen
+		// ft6x06_init();
+		 
+		 // timer, TODO: don't know if right for project
+		 //gp_timer_config_32(TIMER0_BASE, TIMER_TAMR_TAMR_1_SHOT, false, false);
+		 
+		 // joystick
+		 //ps2_initialize(); 
+		 
+		 	// from git for wireless stuff
+		// rfInit();
+		 
     //enable accelerometer
     //accel_initialize();
 
@@ -102,306 +139,93 @@ void EnableInterrupts(void)
 }
 
 
-void loopThroughArray(void)
-{
-    // character indicating which command to do
-    char *commandLetter;
-
-    // This double pointer will be used to store
-    // the command string from the COMMANDS array.
-    char **commandString = COMMANDS;
-
-    // The remaining number following the
-    // char specifying which command to do.
-    char *numFromCommand_String;
-
-    // numFromCommand_String converted to an int using atoi()
-    uint32_t numFromCommand_Int;
-
-    // Loop through COMMAND array, check first character of
-    // array element, and skip if not U,D,L,R, or P. Perform command if valid.
-    // Stop when the pointer doesn't point to anything in the array
-    while (*commandString != 0)
-
-    {
-        /* Add 1 to pointer that points to a command string to remove
-         * the first character and set equal to numFromCommand_String
-         * Example: *commandString    = R500
-         *                  ^pointer starts here
-              *commandString + 1 = 500
-                         ^pointer starts here
-        */
-        numFromCommand_String = *commandString + 1;
-
-        // *commandString holds the whole command but when you set it
-        // equal to a single char pointer, you get the first char of the
-        // command it points to
-        commandLetter = *commandString;
-
-        /* Check if U,D,L,R, or P, or invalid. If valid, use atoi() to convert
-         * the string after the first character into an integer, and call appropriate
-         * function to draw saucer.
-        */
-
-        // Move saucer up (sub from y location) by specified number of pixels
-        if(*commandLetter == 'U')
-        {
-            numFromCommand_Int = atoi(numFromCommand_String);
-            command_Up(numFromCommand_Int);
-        }
-
-        // Move saucer up (add to y location) by specified number of pixels
-        else if(*commandLetter == 'D')
-        {
-            numFromCommand_Int = atoi(numFromCommand_String);
-            command_Down(numFromCommand_Int);
-        }
-
-        // Move saucer left (sub from x location) by specified number of pixels
-        else if(*commandLetter == 'L')
-        {
-            numFromCommand_Int = atoi(numFromCommand_String);
-            command_Left(numFromCommand_Int);
-        }
-
-        // Move saucer right (add to x location) by specified number of pixels
-        else if(*commandLetter == 'R')
-        {
-            numFromCommand_Int = atoi(numFromCommand_String);
-            command_Right(numFromCommand_Int);
-        }
-
-        // Pause by specified duration using empty for loop
-        else if(*commandLetter == 'P')
-        {
-            numFromCommand_Int = atoi(numFromCommand_String);
-            pauseSaucer(numFromCommand_Int);
-        }
-
-        // unrecognized command, skip
-        else continue;
-
-        // increment the double pointer to the next element
-        commandString++;
-    }
-}
-
-
-// draw the saucer with passed in values of x and y
-void drawSaucer(uint16_t x, uint16_t y)
-{
-    // update x and y global variables
-    yPos = y;
-    xPos = x;
-    lcd_draw_image
-    (
-        x,                          // X Pos
-        space_shipWidthPixels,        // Image Horizontal Width
-        y,                          // Y Pos
-        space_shipHeightPixels,       // Image Vertical Height
-        space_shipBitmaps,            // Image
-        LCD_COLOR_BLUE2,              // Foreground Color
-        LCD_COLOR_WHITE               // Background Color
-    );
-}
-
-
-void command_Up(uint32_t num_pixels)
-{
-    // loop variable
-    uint16_t i;
-
-    // check if going to hit top of screen. Have to cast to int
-    // because may get negative number
-    if ((int)(yPos - num_pixels) < Y_MIN)
-    {
-        // draw saucer up until reach top of screen
-        for(i = yPos; i >= Y_MIN; i--)
-        {
-            // keep x fixed, update y
-            drawSaucer(xPos, i);
-        }
-    }
-    else
-    {
-        // must save because yPos is updated every iteration in the loop
-        uint16_t final_y = yPos - num_pixels;
-        // draw saucer up the correct # of pixels
-        // start at yPos and go until you hit (yPos - num_pixels)
-        for(i = yPos; i >= final_y; i--)
-        {
-            // keep x fixed, update y
-            drawSaucer(xPos, i);
-        }
-    }
-}
-
-void command_Down(uint32_t num_pixels)
-{
-    // loop variable
-    uint16_t i;
-
-    // check if going to hit bottom top of screen
-    if ((yPos + num_pixels) > Y_MAX)
-    {
-        // draw saucer down until reach bottom of screen
-        for(i = yPos; i <= Y_MAX; i++)
-        {
-            // keep x fixed, update y
-            drawSaucer(xPos, i);
-        }
-    }
-    else
-    {
-        // must save because yPos is updated every iteration in the loop
-        uint16_t final_y = yPos + num_pixels;
-        // draw saucer down the correct # of pixels
-        // start at yPos and go until you hit (yPos + num_pixels)
-        for(i = yPos; i <= final_y; i++)
-        {
-            // keep x fixed, update y
-            drawSaucer(xPos, i);
-        }
-    }
-}
-
-void command_Left(uint32_t num_pixels)
-{
-    // loop variable
-    uint16_t i;
-
-    // check if going to hit left of screen
-    if ((int)(xPos - num_pixels) < X_MIN)
-    {
-        // draw saucer left until reach left of screen
-        for(i = xPos; i >= X_MIN; i--)
-        {
-            // update x, keep y fixed
-            drawSaucer(i, yPos);
-        }
-    }
-    else
-    {
-        // must save because xPos is updated every iteration in the loop
-        uint16_t final_x = xPos - num_pixels;
-        // draw saucer left the correct # of pixels
-        // start at xPos and go until you hit (xPos - num_pixels)
-        for(i = xPos; i >= final_x; i--)
-        {
-            // update x, keep y fixed
-            drawSaucer(i, yPos);
-        }
-    }
-}
-
-void command_Right(uint32_t num_pixels)
-{
-    // loop variable
-    uint16_t i;
-
-    // check if going to hit right of screen
-    if ((xPos + num_pixels) > X_MAX)
-    {
-        // draw saucer right until reach right of screen
-        for(i = xPos; i <= X_MAX; i++)
-        {
-            // update x, keep y fixed
-            drawSaucer(i, yPos);
-        }
-    }
-    else
-    {
-        // must save because xPos is updated every iteration in the loop
-        uint16_t final_x = xPos + num_pixels;
-        // draw saucer right the correct # of pixels
-        // start at xPos and go until you hit (xPos + num_pixels)
-        for(i = xPos; i <= final_x; i++)
-        {
-            // update x, keep y fixed
-            drawSaucer(i, yPos);
-        }
-    }
-}
-
-
-void pauseSaucer(uint32_t pauseLength)
-{
-    uint32_t i;
-    // use an empty for loop to wait until we've
-    // paused enough time
-    for (i = 0; i <= pauseLength; i++)
-    {
-        //EMPTY
-    }
-}
-
 //*****************************************************************************
 //*****************************************************************************
 int main(void)
 {
 
+/*
+	 char msg[80];
+  wireless_com_status_t status;
+  bool   tx_mode = true;
+  uint32_t data;
+  int i = 0;
+  
+  init_hardware();
 
-    // draw saucer in middle of screen first
-
-
-    // loop through the COMMANDS array which
-    // will call appropriate functions to draw the saucer
-    //loopThroughArray();
-
-
+ 	put_string("\n\r");
+   put_string("******************************\n\r");
+    put_string("ECE353 HW2 Spring 2019\n\r");
+	    put_string("Kevin Wilson\n\r");
+    put_string("******************************\n\r");
+	printf("hello kevin");
+  
+    
+  
+  memset(msg,0,sizeof(msg));
+  sprintf(msg,"MyID:%c%c%c%c%c",myID[0],myID[1],myID[2],myID[3],myID[4]);
+  printf("%s\n",msg);
+  
+  memset(msg,0,sizeof(msg));
+  sprintf(msg,"RmID:%c%c%c%c%c",remoteID[0],remoteID[1],remoteID[2],remoteID[3],remoteID[4]);
+  printf("%s\n",msg);
+  
+  wireless_configure_device(myID, remoteID ) ;
+	*/
     int i;
     int32_t x, y, z;
     char msg[80];
 
     xPos = 120;
     yPos = 160;
-
-
-    init_hardware();
-
-
-	
-   
 		
-		
+		init_hardware();
 
-
-    put_string("\n\r");
+		put_string("\n\r");
     put_string("******************************\n\r");
     put_string("ECE353 HW2 Spring 2019\n\r");
     put_string("Kevin Wilson\n\r");
     put_string("******************************\n\r");
-
-
-    //eeprom_init_write_read();
 		
+    eeprom_init_write_read();
 		
-//		 lcd_draw_image
-//    (
-//        xPos,                         // X Pos
-//        space_shipWidthPixels,        // Image Horizontal Width
-//        yPos,                       // Y Pos
-//        space_shipHeightPixels,       // Image Vertical Height
-//        space_shipBitmaps,            // Image
-//        LCD_COLOR_RED,              // Foreground Color
-//        LCD_COLOR_YELLOW              // Background Color
-//    );
-//		
-		
-		
+		/*
+		 lcd_draw_image
+    (
+        xPos,                         // X Pos
+        space_shipWidthPixels,        // Image Horizontal Width
+        yPos,                       // Y Pos
+        space_shipHeightPixels,       // Image Vertical Height
+        space_shipBitmaps,            // Image
+        LCD_COLOR_RED,              // Foreground Color
+        LCD_COLOR_YELLOW              // Background Color
+    );
+		*/
 		
 		
 lcd_draw_box(
-  50, 
-  30, 
-  50, 
-  30, 
-  LCD_COLOR_RED, //border
-  LCD_COLOR_BLUE, //fill
+  50, //x start
+  30, // x len
+  50, //y s start
+  30, // y len
+  LCD_COLOR_BLUE, //border
+  LCD_COLOR_RED, //fill
   1
 );
 
+lcd_draw_box(
+  100, 
+  30, 
+  100, 
+  30, 
+  LCD_COLOR_RED, //border
+  LCD_COLOR_BLUE, //fill
+  2
+);
 
+ // Reach infinite loop
+ while(1) {};
+	 
     /*
     //Read accelerometer
     while(1)
@@ -465,8 +289,7 @@ lcd_draw_box(
       }
     }
     */
-    // Reach infinite loop
-    //while(1) {};
+   
 }
 
 
