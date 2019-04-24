@@ -268,6 +268,26 @@ void lcd_config_gpio(void);
 * Returns:
 *  Nothing
 *******************************************************************************/  
+
+/*******************************************************************************
+* Function Name: lcd_draw_box
+********************************************************************************
+* Summary: Draws an outline of a box.  The user specifies the width and color
+*          of the border and the color to paint the inside of the box.
+* Returns:
+*  Nothing
+*******************************************************************************/
+void lcd_draw_box(
+  uint16_t x_start,       // X coordinate for the starting address of the box
+  uint16_t x_len,         // Length of the box in pixels
+  uint16_t y_start,       // Y coordinate for the starting address of the box
+  uint16_t y_len,         // Height of the box in pixels
+  uint16_t border_color,      // Border Color
+  uint16_t fill_color,      // Fill Color
+  uint16_t border_width   // Border Width in pixels
+);
+
+
 void lcd_config_screen(void);
 
 #endif

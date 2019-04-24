@@ -77,7 +77,7 @@ void init_hardware(void)
     lcd_clear_screen(LCD_COLOR_WHITE);
 
     //enable accelerometer
-    accel_initialize();
+    //accel_initialize();
 
     EnableInterrupts();
 }
@@ -360,17 +360,10 @@ int main(void)
     init_hardware();
 
 
-
-    lcd_draw_image
-    (
-        xPos,                         // X Pos
-        space_shipWidthPixels,        // Image Horizontal Width
-        yPos,                       // Y Pos
-        space_shipHeightPixels,       // Image Vertical Height
-        space_shipBitmaps,            // Image
-        LCD_COLOR_RED,              // Foreground Color
-        LCD_COLOR_YELLOW              // Background Color
-    );
+	
+   
+		
+		
 
 
     put_string("\n\r");
@@ -380,7 +373,34 @@ int main(void)
     put_string("******************************\n\r");
 
 
-    eeprom_init_write_read();
+    //eeprom_init_write_read();
+		
+		
+//		 lcd_draw_image
+//    (
+//        xPos,                         // X Pos
+//        space_shipWidthPixels,        // Image Horizontal Width
+//        yPos,                       // Y Pos
+//        space_shipHeightPixels,       // Image Vertical Height
+//        space_shipBitmaps,            // Image
+//        LCD_COLOR_RED,              // Foreground Color
+//        LCD_COLOR_YELLOW              // Background Color
+//    );
+//		
+		
+		
+		
+		
+lcd_draw_box(
+  50, 
+  30, 
+  50, 
+  30, 
+  LCD_COLOR_RED, //border
+  LCD_COLOR_BLUE, //fill
+  1
+);
+
 
     /*
     //Read accelerometer
