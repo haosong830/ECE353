@@ -1,7 +1,12 @@
 #include "timers.h"
-#include "accel.h"
+
 
 uint32_t status;
+extern int byte_count;
+volatile int16_t x,y,z;
+extern void hw1_search_memory(uint32_t addr);
+volatile bool alert_T1A = false;
+volatile bool alert_T4A = false;
 //*****************************************************************************
 // Verifies that the base address is a valid GPIO base address
 //*****************************************************************************
@@ -232,8 +237,10 @@ bool gp_timer_config_16(uint32_t base_addr, uint32_t mode, bool count_up, bool e
   // ADD CODE
   //*********************
   gp_timer->CTL &= ~(TIMER_CTL_TAEN | TIMER_CTL_TBEN);
+
   gp_timer->CFG = TIMER_CFG_16_BIT;
   gp_timer->TAMR &= ~TIMER_TAMR_TAMR_M;
+	//gp_timer->TBMR &= ~TIMER_TBMR_TBMR_M;
   gp_timer->TAMR |= mode;	
 	gp_timer->TAILR = ticks;
 	gp_timer->TAPR |= presclr & TIMER_TAPR_TAPSR_M;
@@ -248,45 +255,52 @@ bool gp_timer_config_16(uint32_t base_addr, uint32_t mode, bool count_up, bool e
 	gp_timer->CTL |= TIMER_CTL_TAEN;
   return true;  
 }
-
+//char* command = "LED200FF00";
+//char* clear = "LOAD";
+//int c = 0;
 void TIMER1A_Handler(void){
-		//printf("entered timer1A handler\n");
+		//puts("entered timer1A handler\n");
 		status = TIMER1->MIS & TIMER_MIS_TATOMIS;
 		//printf("%u\n", status);
 		if(status) {
+			
+			alert_T1A = true;
+			//if(c == 0)
+				//hw1_search_memory((uint32_t)command);
+			//if(c == 1)
+				//hw1_search_memory((uint32_t)clear);
+			//c = (c + 1) % 2;
+			
 			//printf("bytes transferred by RN4870: %d\n", byte_count); // print num of bytes transferred by wireless
 		}
 		TIMER1->ICR |= TIMER_ICR_TATOCINT;
 }
 
-
-/*
 void TIMER4A_Handler(void){
 	
-	//printf("entered timer4A handler\n");
+//printf("entered timer4A handler\n");
 	if(TIMER4->MIS & TIMER_MIS_TATOMIS) {
-			//printf("checking accel\n");
-			x = accel_read_x();
-			y = accel_read_y();
-			z = accel_read_z();
-			//printf("accel x: %i accel y: %i accel z: %i\n", x, y, z);
+			alert_T4A = true;
+//printf("checking accel\n");
+//			x = accel_read_x();
+//			y = accel_read_y();
+//			z = accel_read_z();
+//			printf("accel x: %i accel y: %i accel z: %i\n", x, y, z);
 			TIMER4->ICR |= TIMER_ICR_TATOCINT;
 	}
-	//TIMER4->ICR |= TIMER_ICR_TATOCINT;
 }
-*/
 
 void enableTimerIRQ(uint32_t base)
 {
-	IRQn_Type irq;
-	irq = timerA_get_irq_num(base);
-//	NVIC_SetPriority(TIMER1A_IRQn, 2);
-//	NVIC_SetPriority(TIMER4A_IRQn, 1);
-//	NVIC_EnableIRQ(TIMER1A_IRQn);
-//	NVIC_EnableIRQ(TIMER4A_IRQn);
+	//IRQn_Type irq;
+	//irq = timerA_get_irq_num(base);
+	NVIC_SetPriority(TIMER1A_IRQn, 1);
+	NVIC_SetPriority(TIMER4A_IRQn, 2);
+	NVIC_EnableIRQ(TIMER1A_IRQn);
+	NVIC_EnableIRQ(TIMER4A_IRQn);
 
-	NVIC_SetPriority(irq, 1);
-	NVIC_EnableIRQ(irq);
+	//NVIC_SetPriority(irq, 1);
+	//NVIC_EnableIRQ(irq);
 		
 }
 

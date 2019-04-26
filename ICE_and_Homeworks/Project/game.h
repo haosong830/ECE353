@@ -23,6 +23,8 @@ typedef struct _GameCharacter
 	 uint16_t fColor;
 	 uint16_t bColor;
 	 const char* type;
+	 uint16_t max_X;
+	 uint16_t min_X;
 	 bool hit;
 }_GameCharacter;
 
@@ -37,12 +39,15 @@ typedef struct _GameObj
 	 uint16_t fColor;
 	 uint16_t bColor;
 	 const char* type;
+	 uint16_t max_X;
 	 bool hit;
 }_GameObj;
 
 
 
 extern _GameCharacter ufo;
+extern _GameObj rectangle1;
+extern _GameObj rectangle2;
 
 void move_Right(uint16_t xPos, 
 								uint16_t yPos, 

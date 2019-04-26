@@ -25,9 +25,12 @@
 // global variables for saucer x and y positions
 uint16_t ufo_xPos, ufo_yPos;
 extern void hw1_search_memory(uint32_t addr); 
-// from git
 
-
+char en_command[] = "LOAD LED0105020 LED1440070  LED2111111  LED3002233  LED4440066  LED5667700 LED6550000 LED79900bb HALT";
+char clear_command[] = "LOAD LED000000 LED1000000  LED2000000  LED3000000  LED4000000  LED5000000 LED6000000 LED7000000 HALT";
+int count1A = 0;
+extern bool alert_T4A;
+extern bool alert_T1A;
 
 //*****************************************************************************
 // This is an ARRAY of strings.  If you wanted to access the 3rd string
@@ -75,8 +78,8 @@ void init_hardware(void)
     // UART IRQs can be anbled using the two paramters to the function.
     //************************************************************************
     init_serial_debug(true, true);
-	
-    eeprom_init();
+		eeprom_init();
+		
     // initialize launchpad
     lp_io_init();
     //enable LCD stuff
@@ -89,10 +92,13 @@ void init_hardware(void)
 		gpio_config_digital_enable(GPIOD_BASE,0xFF);
 		gpio_config_enable_output(GPIOD_BASE,0xFF);
 	
-	 // gp_timer_config_32(TIMER0_BASE, ONE_SHOT, false, false, SEC_ONE);
-		//gp_timer_config_32(TIMER1_BASE, PERIODIC, false, true, FIVE_SEC);
-		//gp_timer_config_16(TIMER4_BASE, PERIODIC, false, true, EIGHT_MS, PRESCLR);
-
+	// LED timer
+	gp_timer_config_32(TIMER1_BASE, PERIODIC, false, true, SEC_ONE);
+	
+	// Accelerometer timer
+	gp_timer_config_16(TIMER4_BASE, PERIODIC, false, true, 1570, TIMER_TAPR_TAPSR_M);
+	
+	 
 		// I2C touchscreen
 		// ft6x06_init();
 		 // timer, TODO: don't know if right for project
@@ -100,7 +106,7 @@ void init_hardware(void)
 		 
 		 // joystick
 		 //ps2_initialize(); 
-	
+		
     //enable accelerometer
     accel_initialize();
 		
@@ -137,22 +143,21 @@ int main(void)
 	 int i;
    int32_t x, y, z;
    char msg[80];
-	 //char startPrompt[80] = "Please press SW 2 to begin.\n";
+	char startPrompt[80] = "Please press S W2 to begin.\n";
 
     init_hardware();
+		
+		put_string("\n\r");
+    put_string("******************************\n\r");
+    put_string("ECE353 HW2 Spring 2019\n\r");
+    put_string("Kevin Wilson\n\r");
+    put_string("******************************\n\r");
 	
-	/*
-	//draw initial box
-			lcd_draw_box(
-			xPos, //x start
-			30, // x len
-			yPos, //y s start
-			30, // y len
-			LCD_COLOR_BLUE, //border
-			LCD_COLOR_RED, //fill
-			1
-		);
-		*/
+	print_string_toLCD(startPrompt, 40, 160, LCD_COLOR_BLACK, LCD_COLOR_GREEN);
+	
+		//eeprom_init_write_read();
+	
+		
 		lcd_draw_image
     (
         ufo.xPos,                         // X Pos
@@ -163,15 +168,31 @@ int main(void)
         ufo.fColor,              // Foreground Color
         ufo.bColor              // Background Color
     );
-	
-    put_string("\n\r");
-    put_string("******************************\n\r");
-    put_string("ECE353 HW2 Spring 2019\n\r");
-    put_string("Kevin Wilson\n\r");
-    put_string("******************************\n\r");
-	
+			
+			
+		// black box
+		lcd_draw_box(
+			rectangle2.xPos, //x start
+			rectangle2.width, // x len
+			rectangle2.yPos, //y s start
+			rectangle2.height, // y len
+			rectangle2.bColor, //border
+			rectangle2.fColor, //fill
+			rectangle2.border_weight
+		);
+		// blue box
+			lcd_draw_box(
+			rectangle1.xPos, //x start
+			rectangle1.width, // x len
+			rectangle1.yPos, //y s start
+			rectangle1.height, // y len
+			rectangle1.bColor, //border
+			rectangle1.fColor, //fill
+			rectangle1.border_weight
+		);
+		
 		//printf("testing\n");
-    //eeprom_init_write_read();
+    
 	
 			// Reach infinite loop
 			//while(1) {};
@@ -180,11 +201,35 @@ int main(void)
 		
     while(1)
     {
-    // Read the Accelerometer data
-    for(i=0; i < 10000; i++)
-    {
-      x = accel_read_x();
-    };
+			
+			// blinking LEDs
+			if(alert_T1A) 
+			{
+				//put_string("T1A\n");
+				if(count1A == 0) {
+					//put_string("entered count1A == 0\n");
+					//hw1_search_memory((uint32_t)clear_command);
+				}
+				else if(count1A == 1) {
+					//put_string("entered count1A == 1\n");
+					//hw1_search_memory((uint32_t)en_command);
+				}
+				alert_T1A = false;
+				count1A = (count1A + 1) % 2;
+			}
+			
+			// every 8 ms check for reading from accelerometer
+     if(alert_T4A)
+			 {
+				//put_string("read\n");
+				x = accel_read_x();
+				y = accel_read_y();
+				z = accel_read_z();
+				//printf("x: %i, y: %i, z: %i", x, y ,z);
+
+				 alert_T4A = false;
+			}
+		
 
       // Check x values
 
@@ -193,7 +238,9 @@ int main(void)
       {
         //put_string("Move left\n\r");
 				//xPos-=2;
-				move_Left(ufo.xPos, ufo.yPos, 4, (ufo.width/2), ufo.type, &ufo);
+				move_Left(ufo.xPos, ufo.yPos, 4, ufo.min_X, ufo.type, &ufo);
+				move_Right(rectangle1.xPos, rectangle1.yPos, 5, rectangle1.max_X, rectangle1.type, &rectangle1);
+				move_Left(rectangle2.xPos, rectangle2.yPos, 10,1, rectangle2.type, &rectangle2);
         //continue;
 				//printf("%s", msg);
        // put_string(msg);
@@ -202,6 +249,8 @@ int main(void)
       {
        // xPos+=2;
 				move_Right(ufo.xPos, ufo.yPos, 4, (240 - (ufo.width/2)), ufo.type, &ufo);
+				move_Right(rectangle2.xPos, rectangle2.yPos, 5, rectangle2.max_X, rectangle2.type, &rectangle2);
+				move_Left(rectangle1.xPos, rectangle1.yPos, 10,1, rectangle1.type, &rectangle1);
         //continue;
         //put_string("Move right\n\r");
 			//	printf("%s", msg);

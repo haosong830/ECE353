@@ -33,6 +33,8 @@ void eeprom_init_write_read(void);
 void print_string_toLCD(char string[], uint16_t x_start, uint16_t y_start, uint16_t fColor, uint16_t bColor);
 extern void serialDebugInit(void);
 
+
+
 #include "TM4C123.h"
 #include "alphabet.h"
 #include "game.h"
@@ -78,6 +80,7 @@ extern void serialDebugInit(void);
 #define ADDR_START    256
 #define NUM_BYTES      20
 
+#include "main.h"
 #define SEC_ONE     50000000
 #define FIVE_SEC	  250000000
 #define EIGHT_MS		65536

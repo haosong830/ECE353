@@ -8,16 +8,25 @@ _GameCharacter ufo = {52, //w
 											LCD_COLOR_RED,
 											LCD_COLOR_GREEN,
 											"character",
+											(239-(52/2)),
+											52/2,
 											false};
 
 _GameObj rectangle1 = {50, 50, 1, // width, height, border
 											100, 50, 	//x,y
-											LCD_COLOR_BLUE,
-											LCD_COLOR_RED,
+											LCD_COLOR_BLUE,		// fill
+											LCD_COLOR_GREEN,  //border	
 											"object",
+											239 - 50,
 											false}; 
 
-
+_GameObj rectangle2 = {30, 20, 1, // width, height, border
+											50, 120, 	//x,y
+											LCD_COLOR_BLACK,		// fill
+											LCD_COLOR_GREEN,  //border	
+											"object",
+											239 - 30,
+											false}; 
 
 											
 void move_Left(uint16_t xPos, 
@@ -94,7 +103,6 @@ void move_Right(uint16_t xPos,
 // draw the character based on struct
 void drawCharacter(_GameCharacter* character, uint16_t x, uint16_t y) 
 {		
-	put_string("hello");
 	// update x and y struct variables
 	character->yPos = y;
 	character->xPos = x;
@@ -113,6 +121,7 @@ void drawCharacter(_GameCharacter* character, uint16_t x, uint16_t y)
 
 void drawShield(_GameObj* obj, uint16_t x, uint16_t y)
 {
+	//printf("x: %d\n", x);
 	obj->yPos = y;
 	obj->xPos = x;
 	lcd_draw_box(
@@ -120,7 +129,7 @@ void drawShield(_GameObj* obj, uint16_t x, uint16_t y)
 			obj->width, // x len
 			y, //y s start
 			obj->height, // y len
-			obj->fColor, //border
+			obj->bColor, //border
 			obj->fColor, //fill
 			obj->border_weight
 		);

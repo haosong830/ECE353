@@ -39,6 +39,34 @@ void eeprom_init_write_read()
     {
         eeprom_byte_write(I2C1_BASE, addr, name1[addr - ADDR_START]);
     }
+		for(addr = ADDR_START; addr < ADDR_START + 80; addr++)
+    {
+				eeprom_byte_read(I2C1_BASE, addr, &read_val);
+        printf("%c", (char)read_val);
+    }
+		
+		for(addr = ADDR_START; addr < ADDR_START + 80; addr++)
+    {
+        eeprom_byte_write(I2C1_BASE, addr, name2[addr - ADDR_START]);
+    }
+		for(addr = ADDR_START; addr < ADDR_START + 80; addr++)
+    {
+				eeprom_byte_read(I2C1_BASE, addr, &read_val);
+        printf("%c", (char)read_val);
+    }
+		
+		for(addr = ADDR_START; addr < ADDR_START + 80; addr++)
+    {
+        eeprom_byte_write(I2C1_BASE, addr, teamNum[addr - ADDR_START]);
+    }
+		for(addr = ADDR_START; addr < ADDR_START + 80; addr++)
+    {
+				eeprom_byte_read(I2C1_BASE, addr, &read_val);
+        printf("%c", (char)read_val);
+    }
+		
+		/*
+		
     for(addr = ADDR_START + 80; addr < ADDR_START + 160; addr++)
     {
         eeprom_byte_write(I2C1_BASE, addr, name2[addr - (ADDR_START + 80)]);
@@ -54,7 +82,8 @@ void eeprom_init_write_read()
         eeprom_byte_read(I2C1_BASE, addr, &read_val);
         printf("%c", (char)read_val);
     }
-    return;
+		*/
+    //return;
 }
 
 
