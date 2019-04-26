@@ -26,6 +26,7 @@
 uint16_t xPos, yPos;
 extern volatile int16_t x, y, z;
 extern bool alert_T1A;
+extern void hw1_search_memory(uint32_t addr); 
 // from git
 uint8_t myID[]      = { '1', '1', '1', '1', '1'};
 uint8_t remoteID[]  = { '2', '2', '2', '2', '2'};
@@ -38,23 +39,32 @@ uint8_t remoteID[]  = { '2', '2', '2', '2', '2'};
 //*****************************************************************************
 
 void print_string_toLCD(char string[], 
-		uint16_t x_start, 
+	uint16_t x_start, 
 	uint16_t y_start, 
 	uint16_t fColor, 
 	uint16_t bColor)
 {
 	char c1, c2;
-	int i, xPos;
+	int i,j, xPos;
 	xPos = x_start;
-	c1 = ' ';
+	c1 =' ';
 	
 	for (i = 0; i < strlen(string); i++)
 	{
-		c2 = string[i];
-		lcd_draw_image(xPos, alphabet_Descriptors[c2-c1].widthBits, y_start, 11,
-									&alphabet_Bitmap[alphabet_Descriptors[c2-c1].offset], fColor, bColor);
+		c2 = string[i]; 
 		
-		xPos = alphabet_Descriptors[c2-c1].widthBits/2 + 4;
+		lcd_draw_image(xPos, alphabet_Descriptors[c2-c1].widthBits, y_start, 14,
+									&alphabet_Bitmap[alphabet_Descriptors[c2-c1].offset], fColor, bColor);
+		/*
+		// draw in between the spaces
+		for (j = xPos; j < alphabet_Descriptors[c2-c1].widthBits/2 + 4; j++)
+		{
+			lcd_draw_image(xPos, j, y_start, 14,
+									&alphabet_Bitmap[0], fColor, bColor);
+		}
+		*/
+		
+		xPos += alphabet_Descriptors[c2-c1].widthBits/2 + 4;
 	}
 }
 
@@ -63,13 +73,13 @@ void print_string_toLCD(char string[],
 //*****************************************************************************
 void init_hardware(void)
 {
-    DisableInterrupts();
-
+    //DisableInterrupts();
     //************************************************************************
     // Configures the serial debug interface at 115200.
     // UART IRQs can be anbled using the two paramters to the function.
     //************************************************************************
     init_serial_debug(true, true);
+	 //initialize_serial_debug();
 	
     eeprom_init();
     // initialize launchpad
@@ -78,14 +88,12 @@ void init_hardware(void)
     lcd_config_gpio();
     lcd_config_screen();
     lcd_clear_screen(LCD_COLOR_WHITE);
-	
-	  gp_timer_config_32(TIMER0_BASE, ONE_SHOT, false, false, SEC_ONE);
-		gp_timer_config_32(TIMER1_BASE, PERIODIC, false, true, FIVE_SEC);
+	 // gp_timer_config_32(TIMER0_BASE, ONE_SHOT, false, false, SEC_ONE);
+		//gp_timer_config_32(TIMER1_BASE, PERIODIC, false, true, FIVE_SEC);
 		//gp_timer_config_16(TIMER4_BASE, PERIODIC, false, true, EIGHT_MS, PRESCLR);
 
 		// I2C touchscreen
 		// ft6x06_init();
-		 
 		 // timer, TODO: don't know if right for project
 		 //gp_timer_config_32(TIMER0_BASE, TIMER_TAMR_TAMR_1_SHOT, false, false);
 		 
@@ -93,9 +101,8 @@ void init_hardware(void)
 		 //ps2_initialize(); 
 	
     //enable accelerometer
-    accel_initialize();
-
-    EnableInterrupts();
+    //accel_initialize();
+    //EnableInterrupts();
 }
 
 void DisableInterrupts(void)
@@ -151,7 +158,7 @@ int main(void)
   
   wireless_configure_device(myID, remoteID ) ;
 	*/
-		char start[] = "Hello";
+		char startPrompt[] = "Please press S W2 to begin game.";
     int i;
     int32_t x, y, z;
     char msg[80];
@@ -160,6 +167,14 @@ int main(void)
     yPos = 160;
 		
 		init_hardware();
+		
+		// Initialize the GPIO Port D
+	gpio_enable_port(GPIOD_BASE);
+	gpio_config_digital_enable(GPIOD_BASE,0xFF);
+	gpio_config_enable_output(GPIOD_BASE,0xFF);
+	
+	hw1_search_memory((uint32_t)"LED0FFFF00");
+	
 
 		put_string("\n\r");
     put_string("******************************\n\r");
@@ -167,8 +182,27 @@ int main(void)
     put_string("Kevin Wilson\n\r");
     put_string("******************************\n\r");
 		
-    eeprom_init_write_read();
+		//print_string_toLCD(startPrompt, 10, 200, LCD_COLOR_BLACK, LCD_COLOR_BLUE);
 		
+//			eeprom_init_write_read();
+printf("hello");
+			// Reach infinite loop
+			//while(1) {};
+			//lcd_clear_screen(LCD_COLOR_WHITE);
+			
+
+		 // draw initial box
+		lcd_draw_box(
+			xPos, //x start
+			30, // x len
+			yPos, //y s start
+			30, // y len
+			LCD_COLOR_BLUE, //border
+			LCD_COLOR_RED, //fill
+			1
+		);
+		
+		/*
 		while (1)
 		{
 			if (alert_T1A)
@@ -177,7 +211,7 @@ int main(void)
 				alert_T1A = false;
 			}
 		}
-		
+		*/
 		
 		/*
 		 lcd_draw_image
@@ -191,8 +225,9 @@ int main(void)
         LCD_COLOR_YELLOW              // Background Color
     );
 		*/
+	
 		
-    
+   
     //Read accelerometer
 		/*
     while(1)
@@ -201,56 +236,52 @@ int main(void)
     // Read the Accelerometer data
     for(i=0; i < 10000; i++)
     {
-			sprintf(msg,"X: %d\n\r",x);
-			put_string(msg);
-			printf("hello");
-     // x = accel_read_x();
+      x = accel_read_x();
     };
 
       // Check x values
 
-      //sprintf(msg,"X: %d\n\r",x);
+      sprintf(msg,"X: %d\n\r",x);
       if (x > MOVE_LEFT)
       {
-        put_string("Move left\n\r");
-        xPos--;
-        continue;
+        //put_string("Move left\n\r");
+        xPos-=2;
+        //continue;
         put_string(msg);
       }
       else if (x < MOVE_RIGHT)
       {
-        xPos++;
-        continue;
-        put_string("Move right\n\r");
-        put_string(msg);
+        xPos+=2;
+        //continue;
+        //put_string("Move right\n\r");
+        //put_string(msg);
       }
       else
       {
-        put_string("stay still X\n\r");
+        //put_string("stay still X\n\r");
       }
 			*/
-
-			/*
+			
+		/*
     // Read the Accelerometer data
     for(i=0; i < 10000; i++)
     {
-      //z = accel_read_z();
+      z = accel_read_z();
     };
 
       // Check z values
       sprintf(msg,"Z: %d\n\r",z);
       if (z > MOVE_UP)
       {
-        //put_string(msg);
-        //put_string("Move up\n\r");
-        //printf("Move up\n\r");
+        put_string(msg);
+        printf("Move up\n\r");
         yPos--;
         continue;
       }
       else if (z < MOVE_DOWN)
       {
-        //put_string(msg);
-        //put_string("Move down\n\r");
+        put_string(msg);
+        put_string("Move down\n\r");
         yPos++;
         continue;
       }
@@ -259,31 +290,23 @@ int main(void)
         put_string(msg);
         put_string("stay still Y\n\r");
       }
-			*/
-   // }
+*/
 
-    
-		
-		/*
-	
-		print_string_toLCD(start, 50, 50, LCD_COLOR_BLACK, LCD_COLOR_BLUE);
-		
-		
-lcd_draw_box(
-  xPos, //x start
-  30, // x len
-  yPos, //y s start
-  30, // y len
-  LCD_COLOR_BLUE, //border
-  LCD_COLOR_RED, //fill
-  1
-);
+/*
+//lcd_clear_screen(LCD_COLOR_WHITE);
+		// draw with updated coordinates
+		lcd_draw_box(
+			xPos, //x start
+			30, // x len
+			yPos, //y s start
+			30, // y len
+			LCD_COLOR_BLUE, //border
+			LCD_COLOR_RED, //fill
+			1
+		);
 		*/
 
- // Reach infinite loop
- //while(1) {};
+ 
    
 }
-
-
 
