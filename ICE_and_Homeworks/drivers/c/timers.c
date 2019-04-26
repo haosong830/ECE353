@@ -2,9 +2,6 @@
 #include "accel.h"
 
 uint32_t status;
-extern int byte_count;
-volatile int16_t x,y,z;
-volatile bool alert_T1A = false;
 //*****************************************************************************
 // Verifies that the base address is a valid GPIO base address
 //*****************************************************************************
@@ -263,12 +260,11 @@ void TIMER1A_Handler(void){
 }
 
 
-
+/*
 void TIMER4A_Handler(void){
 	
 	//printf("entered timer4A handler\n");
 	if(TIMER4->MIS & TIMER_MIS_TATOMIS) {
-			alert_T1A = true;
 			//printf("checking accel\n");
 			x = accel_read_x();
 			y = accel_read_y();
@@ -278,6 +274,7 @@ void TIMER4A_Handler(void){
 	}
 	//TIMER4->ICR |= TIMER_ICR_TATOCINT;
 }
+*/
 
 void enableTimerIRQ(uint32_t base)
 {

@@ -23,13 +23,9 @@
 #include "main.h"
 
 // global variables for saucer x and y positions
-uint16_t xPos, yPos;
-extern volatile int16_t x, y, z;
-extern bool alert_T1A;
+uint16_t ufo_xPos, ufo_yPos;
 extern void hw1_search_memory(uint32_t addr); 
 // from git
-uint8_t myID[]      = { '1', '1', '1', '1', '1'};
-uint8_t remoteID[]  = { '2', '2', '2', '2', '2'};
 
 
 
@@ -73,13 +69,12 @@ void print_string_toLCD(char string[],
 //*****************************************************************************
 void init_hardware(void)
 {
-    //DisableInterrupts();
+    DisableInterrupts();
     //************************************************************************
     // Configures the serial debug interface at 115200.
     // UART IRQs can be anbled using the two paramters to the function.
     //************************************************************************
     init_serial_debug(true, true);
-	 //initialize_serial_debug();
 	
     eeprom_init();
     // initialize launchpad
@@ -87,7 +82,13 @@ void init_hardware(void)
     //enable LCD stuff
     lcd_config_gpio();
     lcd_config_screen();
-    lcd_clear_screen(LCD_COLOR_WHITE);
+    lcd_clear_screen(LCD_COLOR_GREEN);
+		
+		// Initialize the GPIO Port D
+		gpio_enable_port(GPIOD_BASE);
+		gpio_config_digital_enable(GPIOD_BASE,0xFF);
+		gpio_config_enable_output(GPIOD_BASE,0xFF);
+	
 	 // gp_timer_config_32(TIMER0_BASE, ONE_SHOT, false, false, SEC_ONE);
 		//gp_timer_config_32(TIMER1_BASE, PERIODIC, false, true, FIVE_SEC);
 		//gp_timer_config_16(TIMER4_BASE, PERIODIC, false, true, EIGHT_MS, PRESCLR);
@@ -101,8 +102,9 @@ void init_hardware(void)
 		 //ps2_initialize(); 
 	
     //enable accelerometer
-    //accel_initialize();
-    //EnableInterrupts();
+    accel_initialize();
+		
+    EnableInterrupts();
 }
 
 void DisableInterrupts(void)
@@ -125,74 +127,23 @@ void EnableInterrupts(void)
 }
 
 
+
+
 //*****************************************************************************
 //*****************************************************************************
 int main(void)
 {
-
-/*
-	 char msg[80];
-  wireless_com_status_t status;
-  bool   tx_mode = true;
-  uint32_t data;
-  int i = 0;
-  
-  init_hardware();
-
- 	put_string("\n\r");
-   put_string("******************************\n\r");
-    put_string("ECE353 HW2 Spring 2019\n\r");
-	    put_string("Kevin Wilson\n\r");
-    put_string("******************************\n\r");
-	printf("hello kevin");
-  
-    
-  
-  memset(msg,0,sizeof(msg));
-  sprintf(msg,"MyID:%c%c%c%c%c",myID[0],myID[1],myID[2],myID[3],myID[4]);
-  printf("%s\n",msg);
-  
-  memset(msg,0,sizeof(msg));
-  sprintf(msg,"RmID:%c%c%c%c%c",remoteID[0],remoteID[1],remoteID[2],remoteID[3],remoteID[4]);
-  printf("%s\n",msg);
-  
-  wireless_configure_device(myID, remoteID ) ;
-	*/
-		char startPrompt[] = "Please press S W2 to begin game.";
-    int i;
-    int32_t x, y, z;
-    char msg[80];
-
-    xPos = 120;
-    yPos = 160;
-		
-		init_hardware();
-		
-		// Initialize the GPIO Port D
-	gpio_enable_port(GPIOD_BASE);
-	gpio_config_digital_enable(GPIOD_BASE,0xFF);
-	gpio_config_enable_output(GPIOD_BASE,0xFF);
 	
-	hw1_search_memory((uint32_t)"LED0FFFF00");
+	 int i;
+   int32_t x, y, z;
+   char msg[80];
+	 //char startPrompt[80] = "Please press SW 2 to begin.\n";
+
+    init_hardware();
 	
-
-		put_string("\n\r");
-    put_string("******************************\n\r");
-    put_string("ECE353 HW2 Spring 2019\n\r");
-    put_string("Kevin Wilson\n\r");
-    put_string("******************************\n\r");
-		
-		//print_string_toLCD(startPrompt, 10, 200, LCD_COLOR_BLACK, LCD_COLOR_BLUE);
-		
-//			eeprom_init_write_read();
-printf("hello");
-			// Reach infinite loop
-			//while(1) {};
-			//lcd_clear_screen(LCD_COLOR_WHITE);
-			
-
-		 // draw initial box
-		lcd_draw_box(
+	/*
+	//draw initial box
+			lcd_draw_box(
 			xPos, //x start
 			30, // x len
 			yPos, //y s start
@@ -201,38 +152,34 @@ printf("hello");
 			LCD_COLOR_RED, //fill
 			1
 		);
-		
-		/*
-		while (1)
-		{
-			if (alert_T1A)
-			{
-				printf("hello");
-				alert_T1A = false;
-			}
-		}
 		*/
-		
-		/*
-		 lcd_draw_image
+		lcd_draw_image
     (
-        xPos,                         // X Pos
-        space_shipWidthPixels,        // Image Horizontal Width
-        yPos,                       // Y Pos
-        space_shipHeightPixels,       // Image Vertical Height
-        space_shipBitmaps,            // Image
-        LCD_COLOR_RED,              // Foreground Color
-        LCD_COLOR_YELLOW              // Background Color
+        ufo.xPos,                         // X Pos
+        ufo.width,        // Image Horizontal Width
+        ufo.yPos,                       // Y Pos
+        ufo.height,       // Image Vertical Height
+        ufo.bitmap,            // Image
+        ufo.fColor,              // Foreground Color
+        ufo.bColor              // Background Color
     );
-		*/
 	
-		
-   
+    put_string("\n\r");
+    put_string("******************************\n\r");
+    put_string("ECE353 HW2 Spring 2019\n\r");
+    put_string("Kevin Wilson\n\r");
+    put_string("******************************\n\r");
+	
+		//printf("testing\n");
+    //eeprom_init_write_read();
+	
+			// Reach infinite loop
+			//while(1) {};
+	
     //Read accelerometer
-		/*
+		
     while(1)
     {
-
     // Read the Accelerometer data
     for(i=0; i < 10000; i++)
     {
@@ -245,23 +192,28 @@ printf("hello");
       if (x > MOVE_LEFT)
       {
         //put_string("Move left\n\r");
-        xPos-=2;
+				//xPos-=2;
+				move_Left(ufo.xPos, ufo.yPos, 4, (ufo.width/2), ufo.type, &ufo);
         //continue;
-        put_string(msg);
+				//printf("%s", msg);
+       // put_string(msg);
       }
       else if (x < MOVE_RIGHT)
       {
-        xPos+=2;
+       // xPos+=2;
+				move_Right(ufo.xPos, ufo.yPos, 4, (240 - (ufo.width/2)), ufo.type, &ufo);
         //continue;
         //put_string("Move right\n\r");
-        //put_string(msg);
+			//	printf("%s", msg);
+       // put_string(msg);
       }
       else
       {
+				continue;
         //put_string("stay still X\n\r");
+				//drawSaucer(xPos,yPos);
+					//printf("stay still X\n\r");
       }
-			*/
-			
 		/*
     // Read the Accelerometer data
     for(i=0; i < 10000; i++)
@@ -290,11 +242,10 @@ printf("hello");
         put_string(msg);
         put_string("stay still Y\n\r");
       }
-*/
-
-/*
-//lcd_clear_screen(LCD_COLOR_WHITE);
+			*/
+	/*
 		// draw with updated coordinates
+		lcd_clear_screen(LCD_COLOR_WHITE);
 		lcd_draw_box(
 			xPos, //x start
 			30, // x len
@@ -305,8 +256,6 @@ printf("hello");
 			1
 		);
 		*/
-
- 
-   
+ }
 }
 

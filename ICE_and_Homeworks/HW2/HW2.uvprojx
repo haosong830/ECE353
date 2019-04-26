@@ -432,8 +432,8 @@
           <Files>
             <File>
               <FileName>hw2_f18.lib</FileName>
-              <FileType>4</FileType>
-              <FilePath>.\hw2_f18.lib</FilePath>
+              <FileType>9</FileType>
+              <FilePath>..\lib\hw2_f18.lib</FilePath>
             </File>
           </Files>
         </Group>

@@ -310,7 +310,7 @@ int main(void)
 	
 	// loop through the COMMANDS array which 
 	// will call appropriate functions to draw the saucer
-   // loopThroughArray();
+    loopThroughArray();
 
  
     // Reach infinite loop

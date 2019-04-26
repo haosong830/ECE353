@@ -29,6 +29,9 @@ extern const uint8_t hotdog_Bitmap[];
 extern const uint8_t hotdog_width;
 extern const uint8_t hotdog_height;
 
+
+// maybe put in other file
+
 extern const uint8_t space_shipBitmaps[];
 extern const uint8_t img[];
 extern const uint8_t space_shipWidthPages;

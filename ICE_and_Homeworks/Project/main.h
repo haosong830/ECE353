@@ -35,6 +35,7 @@ extern void serialDebugInit(void);
 
 #include "TM4C123.h"
 #include "alphabet.h"
+#include "game.h"
 
 // LCD stuff
 #include "images.h"
@@ -68,12 +69,6 @@ extern void serialDebugInit(void);
 #include "lcd.h"
 #include "lcd_images.h"
 
-
-// maybe put in other file
-#define X_MAX 214
-#define X_MIN 26
-#define Y_MAX 302
-#define Y_MIN 18
 
 #define MOVE_LEFT  		2000
 #define MOVE_RIGHT 		-2000

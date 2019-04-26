@@ -425,6 +425,16 @@
               <FileType>2</FileType>
               <FilePath>..\HW1\hw1_ws2812b.s</FilePath>
             </File>
+            <File>
+              <FileName>game.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\game.h</FilePath>
+            </File>
+            <File>
+              <FileName>game.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\game.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
