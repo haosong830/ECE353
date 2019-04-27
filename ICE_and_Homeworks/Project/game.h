@@ -5,11 +5,19 @@
 #include "images.h"
 #include <string.h>
 #include "validate.h"
+#include "ft6x06.h"
 
 #define UFO_X_MAX 214
 #define UFO_X_MIN 26
 #define UFO_Y_MAX 302
 #define UFO_Y_MIN 18
+
+#define MOVE_LEFT  		2000
+#define MOVE_RIGHT 		-2000
+#define MOVE_UP 			13300
+#define MOVE_DOWN  		7500
+
+#define BG_COLOR     LCD_COLOR_GREEN
 
 
 // for things that need a bitmap
@@ -40,14 +48,20 @@ typedef struct _GameObj
 	 uint16_t bColor;
 	 const char* type;
 	 uint16_t max_X;
+	 uint16_t min_Y;
 	 bool hit;
 }_GameObj;
 
 
 
 extern _GameCharacter ufo;
-extern _GameObj rectangle1;
-extern _GameObj rectangle2;
+
+extern _GameObj shieldArray[];
+extern uint8_t numShields;
+
+
+extern _GameObj bullet;
+extern _GameObj eraseBullet;
 
 void move_Right(uint16_t xPos, 
 								uint16_t yPos, 
@@ -62,7 +76,14 @@ void move_Left(uint16_t xPos,
 							uint16_t minX,
 							const char type[],
 							void* ptr);
+	
+// used to shoot bullet up
+void shootBullet	 (uint16_t xPos, 
+								uint16_t yPos, 
+								_GameObj* obj);
 
 
 void drawCharacter(_GameCharacter* character, uint16_t x, uint16_t y); 
-void drawShield(_GameObj* obj, uint16_t x, uint16_t y);
+void drawObject(_GameObj* obj, uint16_t x, uint16_t y);
+void checkShooting();
+	

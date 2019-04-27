@@ -72,11 +72,6 @@ extern void serialDebugInit(void);
 #include "lcd_images.h"
 
 
-#define MOVE_LEFT  		2000
-#define MOVE_RIGHT 		-2000
-#define MOVE_UP 			13300
-#define MOVE_DOWN  		7500
-
 #define ADDR_START    256
 #define NUM_BYTES      20
 
@@ -87,5 +82,7 @@ extern void serialDebugInit(void);
 #define PRESCLR			6
 #define ONE_SHOT    TIMER_TAMR_TAMR_1_SHOT
 #define PERIODIC		TIMER_TAMR_TAMR_PERIOD
+
+
 
 #endif

@@ -31,6 +31,8 @@ char clear_command[] = "LOAD LED000000 LED1000000  LED2000000  LED3000000  LED40
 int count1A = 0;
 extern bool alert_T4A;
 extern bool alert_T1A;
+volatile bool readyShoot = false;
+volatile uint8_t touch_event = 0;
 
 //*****************************************************************************
 // This is an ARRAY of strings.  If you wanted to access the 3rd string
@@ -92,15 +94,18 @@ void init_hardware(void)
 		gpio_config_digital_enable(GPIOD_BASE,0xFF);
 		gpio_config_enable_output(GPIOD_BASE,0xFF);
 	
-	// LED timer
-	gp_timer_config_32(TIMER1_BASE, PERIODIC, false, true, SEC_ONE);
-	
-	// Accelerometer timer
-	gp_timer_config_16(TIMER4_BASE, PERIODIC, false, true, 1570, TIMER_TAPR_TAPSR_M);
+		// LED timer
+		gp_timer_config_32(TIMER1_BASE, PERIODIC, false, true, SEC_ONE);
+		
+		// Accelerometer timer
+		gp_timer_config_16(TIMER4_BASE, PERIODIC, false, true, 1570, TIMER_TAPR_TAPSR_M);
+		
+		// Bullet timer
+		gp_timer_config_32(TIMER0_BASE, TIMER_TAMR_TAMR_1_SHOT, false, false, 1000);
 	
 	 
 		// I2C touchscreen
-		// ft6x06_init();
+		 ft6x06_init();
 		 // timer, TODO: don't know if right for project
 		 //gp_timer_config_32(TIMER0_BASE, TIMER_TAMR_TAMR_1_SHOT, false, false);
 		 
@@ -139,11 +144,13 @@ void EnableInterrupts(void)
 //*****************************************************************************
 int main(void)
 {
+	 int count;
+	 char msg[80];
+	 char startPrompt[80] = "Please press S W2 to begin.\n";
 	
-	 int i;
-   int32_t x, y, z;
-   char msg[80];
-	char startPrompt[80] = "Please press S W2 to begin.\n";
+	 // ACCELEROMETER
+   int16_t x_accel, y_accel, z_accel;
+	 uint16_t x_touch, y_touch;
 
     init_hardware();
 		
@@ -153,7 +160,7 @@ int main(void)
     put_string("Kevin Wilson\n\r");
     put_string("******************************\n\r");
 	
-	print_string_toLCD(startPrompt, 40, 160, LCD_COLOR_BLACK, LCD_COLOR_GREEN);
+		print_string_toLCD(startPrompt, 40, 160, LCD_COLOR_BLACK, LCD_COLOR_GREEN);
 	
 		//eeprom_init_write_read();
 	
@@ -170,34 +177,28 @@ int main(void)
     );
 			
 			
-		// black box
+			
+		// black shield
 		lcd_draw_box(
-			rectangle2.xPos, //x start
-			rectangle2.width, // x len
-			rectangle2.yPos, //y s start
-			rectangle2.height, // y len
-			rectangle2.bColor, //border
-			rectangle2.fColor, //fill
-			rectangle2.border_weight
+			shieldArray[1].xPos, //x start
+			shieldArray[1].width, // x len
+			shieldArray[1].yPos, //y s start
+			shieldArray[1].height, // y len
+			shieldArray[1].bColor, //border
+			shieldArray[1].fColor, //fill
+			shieldArray[1].border_weight
 		);
-		// blue box
+		// blue shield
 			lcd_draw_box(
-			rectangle1.xPos, //x start
-			rectangle1.width, // x len
-			rectangle1.yPos, //y s start
-			rectangle1.height, // y len
-			rectangle1.bColor, //border
-			rectangle1.fColor, //fill
-			rectangle1.border_weight
+			shieldArray[0].xPos, //x start
+			shieldArray[0].width, // x len
+			shieldArray[0].yPos, //y s start
+			shieldArray[0].height, // y len
+			shieldArray[0].bColor, //border
+			shieldArray[0].fColor, //fill
+			shieldArray[0].border_weight
 		);
 		
-		//printf("testing\n");
-    
-	
-			// Reach infinite loop
-			//while(1) {};
-	
-    //Read accelerometer
 		
     while(1)
     {
@@ -218,93 +219,56 @@ int main(void)
 				count1A = (count1A + 1) % 2;
 			}
 			
-			// every 8 ms check for reading from accelerometer
-     if(alert_T4A)
+			if(alert_T4A)
 			 {
-				//put_string("read\n");
-				x = accel_read_x();
-				y = accel_read_y();
-				z = accel_read_z();
-				//printf("x: %i, y: %i, z: %i", x, y ,z);
-
-				 alert_T4A = false;
+				 if (count == 0)
+				 {
+					 readyShoot = true;
+				 }
+				 
+				 // check touchscreen
+				 touch_event = ft6x06_read_td_status();
+				
+				 // read accelerometer
+				 	x_accel = accel_read_x();
+					z_accel = accel_read_z();
+				 
+				 // can shoot about ~0.5s
+				  count = (count + 1) % 55;
+					alert_T4A = false;
 			}
-		
-
-      // Check x values
-
-      sprintf(msg,"X: %d\n\r",x);
-      if (x > MOVE_LEFT)
+			 
+			
+			// Check x values of accelerometer
+			//printf("touch_event: %d \n", touch_event);
+     // sprintf(msg,"X: %d\n\r",x);
+			//checkShooting();
+      if (x_accel > MOVE_LEFT)
       {
         //put_string("Move left\n\r");
-				//xPos-=2;
+				checkShooting();
 				move_Left(ufo.xPos, ufo.yPos, 4, ufo.min_X, ufo.type, &ufo);
-				move_Right(rectangle1.xPos, rectangle1.yPos, 5, rectangle1.max_X, rectangle1.type, &rectangle1);
-				move_Left(rectangle2.xPos, rectangle2.yPos, 10,1, rectangle2.type, &rectangle2);
-        //continue;
-				//printf("%s", msg);
-       // put_string(msg);
+				checkShooting();
+				move_Right(shieldArray[0].xPos, shieldArray[0].yPos, 5, shieldArray[0].max_X, shieldArray[0].type, &shieldArray[0]);
+				move_Left(shieldArray[1].xPos, shieldArray[1].yPos, 10,1, shieldArray[1].type, &shieldArray[1]);
       }
-      else if (x < MOVE_RIGHT)
+      else if (x_accel < MOVE_RIGHT)
       {
-       // xPos+=2;
+				
+			  checkShooting();
 				move_Right(ufo.xPos, ufo.yPos, 4, (240 - (ufo.width/2)), ufo.type, &ufo);
-				move_Right(rectangle2.xPos, rectangle2.yPos, 5, rectangle2.max_X, rectangle2.type, &rectangle2);
-				move_Left(rectangle1.xPos, rectangle1.yPos, 10,1, rectangle1.type, &rectangle1);
-        //continue;
-        //put_string("Move right\n\r");
-			//	printf("%s", msg);
-       // put_string(msg);
+				checkShooting();
+				move_Right(shieldArray[1].xPos, shieldArray[1].yPos, 5, shieldArray[1].max_X, shieldArray[1].type, &shieldArray[1]);
+				move_Left(shieldArray[0].xPos, shieldArray[0].yPos, 10,1, shieldArray[0].type, &shieldArray[0]);
+      
       }
       else
       {
-				continue;
-        //put_string("stay still X\n\r");
-				//drawSaucer(xPos,yPos);
-					//printf("stay still X\n\r");
+					checkShooting();
+       
       }
-		/*
-    // Read the Accelerometer data
-    for(i=0; i < 10000; i++)
-    {
-      z = accel_read_z();
-    };
+			
+		}
 
-      // Check z values
-      sprintf(msg,"Z: %d\n\r",z);
-      if (z > MOVE_UP)
-      {
-        put_string(msg);
-        printf("Move up\n\r");
-        yPos--;
-        continue;
-      }
-      else if (z < MOVE_DOWN)
-      {
-        put_string(msg);
-        put_string("Move down\n\r");
-        yPos++;
-        continue;
-      }
-      else
-      {
-        put_string(msg);
-        put_string("stay still Y\n\r");
-      }
-			*/
-	/*
-		// draw with updated coordinates
-		lcd_clear_screen(LCD_COLOR_WHITE);
-		lcd_draw_box(
-			xPos, //x start
-			30, // x len
-			yPos, //y s start
-			30, // y len
-			LCD_COLOR_BLUE, //border
-			LCD_COLOR_RED, //fill
-			1
-		);
-		*/
  }
-}
 

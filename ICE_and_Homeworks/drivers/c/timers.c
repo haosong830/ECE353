@@ -7,6 +7,7 @@ volatile int16_t x,y,z;
 extern void hw1_search_memory(uint32_t addr);
 volatile bool alert_T1A = false;
 volatile bool alert_T4A = false;
+
 //*****************************************************************************
 // Verifies that the base address is a valid GPIO base address
 //*****************************************************************************
@@ -255,40 +256,26 @@ bool gp_timer_config_16(uint32_t base_addr, uint32_t mode, bool count_up, bool e
 	gp_timer->CTL |= TIMER_CTL_TAEN;
   return true;  
 }
-//char* command = "LED200FF00";
-//char* clear = "LOAD";
-//int c = 0;
+
+// LED BLINKER
 void TIMER1A_Handler(void){
 		//puts("entered timer1A handler\n");
 		status = TIMER1->MIS & TIMER_MIS_TATOMIS;
-		//printf("%u\n", status);
 		if(status) {
-			
 			alert_T1A = true;
-			//if(c == 0)
-				//hw1_search_memory((uint32_t)command);
-			//if(c == 1)
-				//hw1_search_memory((uint32_t)clear);
-			//c = (c + 1) % 2;
-			
-			//printf("bytes transferred by RN4870: %d\n", byte_count); // print num of bytes transferred by wireless
 		}
 		TIMER1->ICR |= TIMER_ICR_TATOCINT;
 }
 
+// ACCELEROMETER
 void TIMER4A_Handler(void){
-	
-//printf("entered timer4A handler\n");
 	if(TIMER4->MIS & TIMER_MIS_TATOMIS) {
 			alert_T4A = true;
-//printf("checking accel\n");
-//			x = accel_read_x();
-//			y = accel_read_y();
-//			z = accel_read_z();
-//			printf("accel x: %i accel y: %i accel z: %i\n", x, y, z);
 			TIMER4->ICR |= TIMER_ICR_TATOCINT;
 	}
 }
+
+
 
 void enableTimerIRQ(uint32_t base)
 {
