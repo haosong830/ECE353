@@ -25,13 +25,14 @@ void eeprom_init_write_read()
         printf("%c", (char) read_val);
     }
 
-    // Make sure SW2 is reset
-    lp_io_clear_pin(SW2_BIT);
-    while(1)
+
+		
+		sw2_logic_level = false;
+    while(!sw2_logic_level)
     {
-        sw2_logic_level = lp_io_read_pin(SW2_BIT);
-        if (!sw2_logic_level) break;
+      sw2_logic_level = button_pressed(SW2_BIT);
     }
+		
 
     // If sw2 pressed, write this data to eeprom
     // Write all the data to the eeprom
@@ -83,7 +84,7 @@ void eeprom_init_write_read()
         printf("%c", (char)read_val);
     }
 		*/
-    //return;
+    return;
 }
 
 

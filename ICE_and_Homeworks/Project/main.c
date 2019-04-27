@@ -81,7 +81,6 @@ void init_hardware(void)
     //************************************************************************
     init_serial_debug(true, true);
 		eeprom_init();
-		
     // initialize launchpad
     lp_io_init();
     //enable LCD stuff
@@ -94,20 +93,9 @@ void init_hardware(void)
 		gpio_config_digital_enable(GPIOD_BASE,0xFF);
 		gpio_config_enable_output(GPIOD_BASE,0xFF);
 	
-		// LED timer
-		gp_timer_config_32(TIMER1_BASE, PERIODIC, false, true, SEC_ONE);
-		
-		// Accelerometer timer
-		gp_timer_config_16(TIMER4_BASE, PERIODIC, false, true, 1570, TIMER_TAPR_TAPSR_M);
-		
-		// Bullet timer
-		gp_timer_config_32(TIMER0_BASE, TIMER_TAMR_TAMR_1_SHOT, false, false, 1000);
-	
-	 
+ 
 		// I2C touchscreen
 		 ft6x06_init();
-		 // timer, TODO: don't know if right for project
-		 //gp_timer_config_32(TIMER0_BASE, TIMER_TAMR_TAMR_1_SHOT, false, false);
 		 
 		 // joystick
 		 //ps2_initialize(); 
@@ -164,6 +152,12 @@ int main(void)
 	
 		//eeprom_init_write_read();
 	
+			// LED timer
+		gp_timer_config_32(TIMER1_BASE, PERIODIC, false, true, SEC_ONE);
+		
+		// Accelerometer timer
+		gp_timer_config_16(TIMER4_BASE, PERIODIC, false, true, 1570, TIMER_TAPR_TAPSR_M);
+	
 		
 		lcd_draw_image
     (
@@ -203,6 +197,7 @@ int main(void)
     while(1)
     {
 			
+			
 			// blinking LEDs
 			if(alert_T1A) 
 			{
@@ -218,6 +213,7 @@ int main(void)
 				alert_T1A = false;
 				count1A = (count1A + 1) % 2;
 			}
+			
 			
 			if(alert_T4A)
 			 {

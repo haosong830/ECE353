@@ -38,6 +38,7 @@ extern void serialDebugInit(void);
 #include "TM4C123.h"
 #include "alphabet.h"
 #include "game.h"
+#include "buttons.h"
 
 // LCD stuff
 #include "images.h"

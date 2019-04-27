@@ -141,7 +141,7 @@ void shootBullet (uint16_t xPos,
 								  _GameObj* obj)
 {	
 	// loop variable
-	uint16_t i;
+	uint16_t i,j;
 	obj->yPos = yPos;
 	obj->xPos = xPos;
 	
@@ -161,11 +161,12 @@ void shootBullet (uint16_t xPos,
 			
 					 if (obj->yPos == (shieldArray[i].yPos + shieldArray[i].height) &&
 						   obj->xPos < (shieldArray[i].xPos + shieldArray[i].width) &&
-							 obj->xPos >= shieldArray[i].xPos)
+							 (obj->xPos + obj->width) >= shieldArray[i].xPos)
 					 {
 						 obj->hit = true;
 					 }
 		}
+		 for (j = 0; j<10000; j++){}
 	}
 	// erase bullet
 	lcd_draw_box(obj->xPos, //x start
