@@ -29,6 +29,10 @@ extern const uint8_t hotdog_Bitmap[];
 extern const uint8_t hotdog_width;
 extern const uint8_t hotdog_height;
 
+extern const uint8_t octopus_width;
+extern const uint8_t octopus_height;
+extern const uint8_t octopus_Bitmap[];
+
 
 // maybe put in other file
 

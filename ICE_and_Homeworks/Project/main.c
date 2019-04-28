@@ -34,6 +34,8 @@ extern bool alert_T1A;
 volatile bool readyShoot = false;
 volatile uint8_t touch_event = 0;
 
+extern int score, numBullets;
+
 //*****************************************************************************
 // This is an ARRAY of strings.  If you wanted to access the 3rd string
 // ("P10000"), you could do so using COMMANDS[2].
@@ -86,7 +88,7 @@ void init_hardware(void)
     //enable LCD stuff
     lcd_config_gpio();
     lcd_config_screen();
-    lcd_clear_screen(LCD_COLOR_GREEN);
+    lcd_clear_screen(BG_COLOR);
 		
 		// Initialize the GPIO Port D
 		gpio_enable_port(GPIOD_BASE);
@@ -132,9 +134,10 @@ void EnableInterrupts(void)
 //*****************************************************************************
 int main(void)
 {
-	 int count;
-	 char msg[80];
+	 int count, i, numPixels;
+	 char bulletString[80], scoreString[80];
 	 char startPrompt[80] = "Please press S W2 to begin.\n";
+	
 	
 	 // ACCELEROMETER
    int16_t x_accel, y_accel, z_accel;
@@ -148,7 +151,7 @@ int main(void)
     put_string("Kevin Wilson\n\r");
     put_string("******************************\n\r");
 	
-		print_string_toLCD(startPrompt, 40, 160, LCD_COLOR_BLACK, LCD_COLOR_GREEN);
+		print_string_toLCD(startPrompt, 40, 160, LCD_COLOR_WHITE, BG_COLOR);
 	
 		//eeprom_init_write_read();
 	
@@ -161,13 +164,13 @@ int main(void)
 		
 		lcd_draw_image
     (
-        ufo.xPos,                         // X Pos
-        ufo.width,        // Image Horizontal Width
-        ufo.yPos,                       // Y Pos
-        ufo.height,       // Image Vertical Height
-        ufo.bitmap,            // Image
-        ufo.fColor,              // Foreground Color
-        ufo.bColor              // Background Color
+        octopus.xPos,                         // X Pos
+        octopus.width,        // Image Horizontal Width
+        octopus.yPos,                       // Y Pos
+        octopus.height,       // Image Vertical Height
+        octopus.bitmap,            // Image
+        octopus.fColor,              // Foreground Color
+        octopus.bColor              // Background Color
     );
 			
 			
@@ -196,7 +199,6 @@ int main(void)
 		
     while(1)
     {
-			
 			
 			// blinking LEDs
 			if(alert_T1A) 
@@ -234,6 +236,24 @@ int main(void)
 					alert_T4A = false;
 			}
 			 
+			for (i = 0; i < numShields; i++)
+			{
+				// generate random number to move by in range 1 to 10
+				numPixels = (rand() % 10) + 1;
+				
+				if (shieldArray[i].moveRight) 
+				{
+						// check if should switch direction
+						if (shieldArray[i].xPos + numPixels >= shieldArray[i].max_X) shieldArray[i].moveRight = false;
+						move_Right(shieldArray[i].xPos, shieldArray[i].yPos, numPixels, shieldArray[i].max_X, shieldArray[i].type, &shieldArray[i]);
+					
+				}
+				else
+				{
+					if (shieldArray[i].xPos - numPixels <= 1) shieldArray[i].moveRight = true;
+					move_Left(shieldArray[i].xPos, shieldArray[i].yPos, numPixels, 1, shieldArray[i].type, &shieldArray[i]);
+				}
+			}
 			
 			// Check x values of accelerometer
 			//printf("touch_event: %d \n", touch_event);
@@ -243,26 +263,35 @@ int main(void)
       {
         //put_string("Move left\n\r");
 				checkShooting();
-				move_Left(ufo.xPos, ufo.yPos, 4, ufo.min_X, ufo.type, &ufo);
+				move_Left(octopus.xPos, octopus.yPos, 4, octopus.min_X, octopus.type, &octopus);
 				checkShooting();
-				move_Right(shieldArray[0].xPos, shieldArray[0].yPos, 5, shieldArray[0].max_X, shieldArray[0].type, &shieldArray[0]);
-				move_Left(shieldArray[1].xPos, shieldArray[1].yPos, 10,1, shieldArray[1].type, &shieldArray[1]);
+				//move_Right(shieldArray[0].xPos, shieldArray[0].yPos, 5, shieldArray[0].max_X, shieldArray[0].type, &shieldArray[0]);
+				//move_Left(shieldArray[1].xPos, shieldArray[1].yPos, 10,1, shieldArray[1].type, &shieldArray[1]);
       }
       else if (x_accel < MOVE_RIGHT)
       {
 				
 			  checkShooting();
-				move_Right(ufo.xPos, ufo.yPos, 4, (240 - (ufo.width/2)), ufo.type, &ufo);
+				move_Right(octopus.xPos, octopus.yPos, 4, (240 - (octopus.width/2)), octopus.type, &octopus);
 				checkShooting();
-				move_Right(shieldArray[1].xPos, shieldArray[1].yPos, 5, shieldArray[1].max_X, shieldArray[1].type, &shieldArray[1]);
-				move_Left(shieldArray[0].xPos, shieldArray[0].yPos, 10,1, shieldArray[0].type, &shieldArray[0]);
+				//move_Right(shieldArray[1].xPos, shieldArray[1].yPos, 5, shieldArray[1].max_X, shieldArray[1].type, &shieldArray[1]);
+				//move_Left(shieldArray[0].xPos, shieldArray[0].yPos, 10,1, shieldArray[0].type, &shieldArray[0]);
       
       }
       else
       {
 					checkShooting();
-       
       }
+			
+			// num bullets
+			lcd_draw_box(0,65, 300, 20, LCD_COLOR_BLACK, LCD_COLOR_RED, 2);
+			sprintf(bulletString,"%d bullets:",numBullets);
+			print_string_toLCD(bulletString, 7, 310, LCD_COLOR_WHITE, LCD_COLOR_RED);
+			
+			// score
+			lcd_draw_box(0,65, 280, 20, LCD_COLOR_BLACK, LCD_COLOR_GREEN, 2);
+			sprintf(scoreString,"score : %d:", score);
+			print_string_toLCD(scoreString, 5, 300, LCD_COLOR_WHITE, LCD_COLOR_GREEN);
 			
 		}
 

@@ -13,12 +13,17 @@
 #define UFO_Y_MAX 302
 #define UFO_Y_MIN 18
 
+#define OCTOPUS_X_MAX  212
+#define OCTOPUS_X_MIN 	27
+#define OCTOPUS_Y_MAX		297
+#define OCTOPUS_Y_MIN		20
+
 #define MOVE_LEFT  		2000
 #define MOVE_RIGHT 		-2000
 #define MOVE_UP 			13300
 #define MOVE_DOWN  		7500
 
-#define BG_COLOR     LCD_COLOR_GREEN
+#define BG_COLOR     LCD_COLOR_BLUE
 
 
 // for things that need a bitmap
@@ -50,12 +55,14 @@ typedef struct _GameObj
 	 const char* type;
 	 uint16_t max_X;
 	 uint16_t min_Y;
+	 bool moveRight;
 	 bool hit;
 }_GameObj;
 
 
 
 extern _GameCharacter ufo;
+extern _GameCharacter octopus;
 
 extern _GameObj shieldArray[];
 extern uint8_t numShields;

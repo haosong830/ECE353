@@ -1,19 +1,34 @@
 #include "game.h"
-extern bool alert_T4A;
-extern bool alert_T1A;
 extern bool readyShoot;
 extern uint8_t touch_event;
+
+
+int score = 5;
+int numBullets = 10;
 
 _GameCharacter ufo = {52, //w
 											36, //h
 											120,UFO_Y_MAX, //x, y
 											space_shipBitmaps,
 											LCD_COLOR_RED,
-											LCD_COLOR_YELLOW,
+											LCD_COLOR_GREEN2,
 											"character",
 											(239-(52/2)),
 											52/2,
 											false};
+
+_GameCharacter octopus ={53, //w
+												41, //h
+												120,OCTOPUS_Y_MAX, //x, y
+												octopus_Bitmap,
+												LCD_COLOR_BLACK,
+												LCD_COLOR_BLUE2,
+												"character",
+												OCTOPUS_X_MAX,
+												OCTOPUS_X_MIN,
+												false};
+
+											
 
 		
 											
@@ -22,11 +37,12 @@ _GameObj shieldArray[] =
 	// Rectangle 0
 	{50, 50, 1, 			// width, height, border
 	100, 50, 					//x,y
-	LCD_COLOR_BLUE,		// fill
+	LCD_COLOR_YELLOW,		// fill
 	BG_COLOR,  //border	
 	"object",
 	239 - 50,					// max x
 	1,								// min y (top of screen)
+	true,
 	false},
 	
 	//Rectangle 1
@@ -37,6 +53,7 @@ _GameObj shieldArray[] =
 	"object",
 	239 - 30,
 	1,									// min y
+	false,							// moveRight
 	false}
 																				
 };				
@@ -45,21 +62,13 @@ uint8_t numShields = sizeof(shieldArray)/ sizeof(shieldArray[0]);
 
 _GameObj bullet = {10, 10, 1, 			// width, height, border
 									0, 0, 					//x,y
-									LCD_COLOR_GRAY,		// fill
+									LCD_COLOR_RED,		// fill
 									BG_COLOR,  //border	
 									"object",
 									239 - 10,
 									1,							//min y, probably take out
 									false}; 
 
-_GameObj eraseBullet = {10, 10, 1, 			// width, height, border
-												0, 0, 					//x,y
-												BG_COLOR,		// fill
-												BG_COLOR,  //border	
-												"object",
-												239 - 10,
-												1,							//min y
-												false}; 
 
 											
 void move_Left(uint16_t xPos, 
@@ -76,6 +85,7 @@ void move_Left(uint16_t xPos,
 	// check if going to hit left of screen
 	if ((int)(xPos - num_pixels) < minX){
 		// draw saucer left until reach left of screen
+		// flip its direction
 		for(i = xPos; i >= minX; i--){
 			// update x, keep y fixed
 			//lcd_clear_screen(LCD_COLOR_GREEN);
@@ -217,6 +227,9 @@ void drawObject(_GameObj* obj, uint16_t x, uint16_t y)
 		);
 }
 
+
+
+
 void checkShooting()
 {
 			int i;
@@ -226,7 +239,8 @@ void checkShooting()
 				 {
 					 // have to wait again until ready to shoot
 					 readyShoot = false;
-					 shootBullet(ufo.xPos -5, ufo.yPos - ufo.width/2 -1, &bullet);
+					 numBullets--;
+					 shootBullet(octopus.xPos -5, octopus.yPos - octopus.width/2 -3, &bullet);
 					 
 					 // check if bullet is at bottom of any of the shields
 						
@@ -243,4 +257,4 @@ void checkShooting()
 						);
 					 */
 				 }
-			 }
+}
