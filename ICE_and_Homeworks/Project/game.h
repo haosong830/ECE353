@@ -13,10 +13,15 @@
 #define UFO_Y_MAX 302
 #define UFO_Y_MIN 18
 
-#define OCTOPUS_X_MAX  212
-#define OCTOPUS_X_MIN 	27
-#define OCTOPUS_Y_MAX		297
-#define OCTOPUS_Y_MIN		20
+#define OCTOPUS_X_MAX  	211
+#define OCTOPUS_X_MIN 	29
+#define OCTOPUS_Y_MAX		293
+#define OCTOPUS_Y_MIN		27
+
+#define FISH_X_MAX 		221
+#define FISH_X_MIN 		19
+#define FISH_Y_MAX 		305
+#define FISH_Y_MIN 		15
 
 #define MOVE_LEFT  		2000
 #define MOVE_RIGHT 		-2000
@@ -39,6 +44,7 @@ typedef struct _GameCharacter
 	 const char* type;
 	 uint16_t max_X;
 	 uint16_t min_X;
+	 bool moveRight;
 	 bool hit;
 }_GameCharacter;
 
@@ -65,6 +71,8 @@ extern _GameCharacter ufo;
 extern _GameCharacter octopus;
 
 extern _GameObj shieldArray[];
+extern _GameCharacter fishArray[];
+extern uint8_t numFish;
 extern uint8_t numShields;
 
 
@@ -94,4 +102,7 @@ void shootBullet	 (uint16_t xPos,
 void drawCharacter(_GameCharacter* character, uint16_t x, uint16_t y); 
 void drawObject(_GameObj* obj, uint16_t x, uint16_t y);
 void checkShooting();
+void moveShields();
+void moveFish();
+void gameSetup();
 	

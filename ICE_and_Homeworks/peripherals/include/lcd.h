@@ -26,13 +26,13 @@
 #include <stdint.h>
 #include "driver_defines.h"
 #include "gpio_port.h"
+#include "I:\ECE353\ICE_and_Homeworks\Project\alphabet.h"
 
 typedef enum {
   LEFT = 0,
   RIGHT = 1,
   CENTER = 2
 } lcd_justify_t;
-
 
 
 #define ROUNDED_CORNERS  true
@@ -289,6 +289,11 @@ void lcd_draw_box(
 
 
 void lcd_config_screen(void);
+void print_string_toLCD(char string[], 
+	uint16_t x_start, 
+	uint16_t y_start, 
+	uint16_t fColor, 
+	uint16_t bColor);
 
 #endif
 

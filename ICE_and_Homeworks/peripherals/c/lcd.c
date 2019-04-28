@@ -409,3 +409,33 @@ void lcd_draw_box(
 	return;
 }
 
+void print_string_toLCD(char string[], 
+	uint16_t x_start, 
+	uint16_t y_start, 
+	uint16_t fColor, 
+	uint16_t bColor)
+{
+	char c1, c2;
+	int i,j, xPos;
+	xPos = x_start;
+	c1 =' ';
+	
+	for (i = 0; i < strlen(string); i++)
+	{
+		c2 = string[i]; 
+		
+		lcd_draw_image(xPos, alphabet_Descriptors[c2-c1].widthBits, y_start, 14,
+									&alphabet_Bitmap[alphabet_Descriptors[c2-c1].offset], fColor, bColor);
+		/*
+		// draw in between the spaces
+		for (j = xPos; j < alphabet_Descriptors[c2-c1].widthBits/2 + 4; j++)
+		{
+			lcd_draw_image(xPos, j, y_start, 14,
+									&alphabet_Bitmap[0], fColor, bColor);
+		}
+		*/
+		
+		xPos += alphabet_Descriptors[c2-c1].widthBits/2 + 4;
+	}
+}
+

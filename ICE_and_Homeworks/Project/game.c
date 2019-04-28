@@ -3,7 +3,7 @@ extern bool readyShoot;
 extern uint8_t touch_event;
 
 
-int score = 5;
+int score = 0;
 int numBullets = 10;
 
 _GameCharacter ufo = {52, //w
@@ -17,8 +17,7 @@ _GameCharacter ufo = {52, //w
 											52/2,
 											false};
 
-_GameCharacter octopus ={53, //w
-												41, //h
+_GameCharacter octopus ={58,54, //width, height
 												120,OCTOPUS_Y_MAX, //x, y
 												octopus_Bitmap,
 												LCD_COLOR_BLACK,
@@ -26,16 +25,64 @@ _GameCharacter octopus ={53, //w
 												"character",
 												OCTOPUS_X_MAX,
 												OCTOPUS_X_MIN,
+												false, // unneeded for octopus
 												false};
 
-											
+												
+												
+										
+_GameCharacter fishArray[] =
+{
+	
+	//Fish 0
+	{
+		39, 31, // width,height
+		100, 205, // xPos, yPos
+		fishLeft_Bitmap,
+		LCD_COLOR_RED,
+		BG_COLOR,
+		"character",
+		FISH_X_MAX,
+		FISH_Y_MIN,
+		false,				// move right
+		false
+	},
 
-		
-											
+	//Fish 1
+	{
+		39, 31, // width,height
+		50, 19,
+		fishRight_Bitmap,
+		LCD_COLOR_GREEN,
+		BG_COLOR,
+		"character",
+		FISH_X_MAX,
+		FISH_Y_MIN,
+		true,
+		false
+	},
+	
+	//Fish 2
+	{
+		39, 31, // width,height
+		70, 100, // x, y
+		fishRight_Bitmap,
+		LCD_COLOR_ORANGE,
+		BG_COLOR,
+		"character",
+		FISH_X_MAX,
+		FISH_Y_MIN,
+		true,
+		false
+	}
+};
+							
+
+
 _GameObj shieldArray[] =
 {	
 	// Rectangle 0
-	{50, 50, 1, 			// width, height, border
+	{50, 5, 1, 			// width, height, border
 	100, 50, 					//x,y
 	LCD_COLOR_YELLOW,		// fill
 	BG_COLOR,  //border	
@@ -46,7 +93,7 @@ _GameObj shieldArray[] =
 	false},
 	
 	//Rectangle 1
-	{30, 20, 1, 				// width, height, border
+	{30, 5, 1, 				// width, height, border
 	50, 120, 						//x,y
 	LCD_COLOR_BLACK,		// fill
 	BG_COLOR,  	//border	
@@ -59,6 +106,7 @@ _GameObj shieldArray[] =
 };				
 
 uint8_t numShields = sizeof(shieldArray)/ sizeof(shieldArray[0]);
+uint8_t numFish = sizeof(fishArray) / sizeof(fishArray[0]);
 
 _GameObj bullet = {10, 10, 1, 			// width, height, border
 									0, 0, 					//x,y
@@ -80,7 +128,6 @@ void move_Left(uint16_t xPos,
 {
 	// loop variable
 	uint16_t i;
-	
 	
 	// check if going to hit left of screen
 	if ((int)(xPos - num_pixels) < minX){
@@ -176,7 +223,7 @@ void shootBullet (uint16_t xPos,
 						 obj->hit = true;
 					 }
 		}
-		 for (j = 0; j<10000; j++){}
+		 for (j = 0; j<5000; j++){}
 	}
 	// erase bullet
 	lcd_draw_box(obj->xPos, //x start
@@ -227,7 +274,61 @@ void drawObject(_GameObj* obj, uint16_t x, uint16_t y)
 		);
 }
 
-
+void moveShields()
+	{
+		int numPixels,i;
+			// Move the shields
+			for (i = 0; i < numShields; i++)
+			{
+				// generate random number to move by in range 1 to 10
+				numPixels = (rand() % 10) + 1;
+				
+				if (shieldArray[i].moveRight) 
+				{
+						// check if should switch direction
+						if (shieldArray[i].xPos + numPixels >= shieldArray[i].max_X) shieldArray[i].moveRight = false;
+						move_Right(shieldArray[i].xPos, shieldArray[i].yPos, numPixels, shieldArray[i].max_X, shieldArray[i].type, &shieldArray[i]);
+					
+				}
+				else
+				{
+					if (shieldArray[i].xPos - numPixels <= 1) shieldArray[i].moveRight = true;
+					move_Left(shieldArray[i].xPos, shieldArray[i].yPos, numPixels, 1, shieldArray[i].type, &shieldArray[i]);
+				}
+			}
+		}
+	
+void moveFish()
+	{
+		int numPixels,i;
+			// Move the shields
+			for (i = 0; i < numFish; i++)
+			{
+				// generate random number to move by in range 1 to 10
+				//numPixels = (rand() % 10) + 1;
+				numPixels = 5;
+				
+				if (fishArray[i].moveRight) 
+				{
+						// check if should switch direction
+						if (fishArray[i].xPos + numPixels >= fishArray[i].max_X)
+						{
+							fishArray[i].moveRight = false;
+							fishArray[i].bitmap = fishLeft_Bitmap;
+						}
+						move_Right(fishArray[i].xPos, fishArray[i].yPos, numPixels, fishArray[i].max_X, fishArray[i].type, &fishArray[i]);
+				}
+				else
+				{
+					if (fishArray[i].xPos - numPixels <= 20)
+					{
+						fishArray[i].moveRight = true;
+						fishArray[i].bitmap = fishRight_Bitmap;
+					}
+					move_Left(fishArray[i].xPos, fishArray[i].yPos, numPixels, 1, fishArray[i].type, &fishArray[i]);
+				}
+			}
+		}
 
 
 void checkShooting()
@@ -237,24 +338,73 @@ void checkShooting()
 				// after moving check if you should shoot
 			if (readyShoot && (touch_event > 0))
 				 {
+					 
 					 // have to wait again until ready to shoot
 					 readyShoot = false;
 					 numBullets--;
-					 shootBullet(octopus.xPos -5, octopus.yPos - octopus.width/2 -3, &bullet);
-					 
-					 // check if bullet is at bottom of any of the shields
-						
-					 /*
-						// bullet reached top of screen so erase it
-					  lcd_draw_box(
-						bullet.xPos, //x start
-						bullet.width, // x len
-						bullet.yPos, //y s start
-						bullet.height, // y len
-						BG_COLOR, //border
-						BG_COLOR, //fill
-						bullet.border_weight
-						);
-					 */
+					 shootBullet(octopus.xPos -5, octopus.yPos - octopus.height/2 - 9, &bullet);
 				 }
 }
+
+
+
+void gameSetup()
+{
+	 char startPrompt[80] = "Please press S W2 to begin.\n";
+	print_string_toLCD(startPrompt, 40, 160, LCD_COLOR_WHITE, BG_COLOR);
+		
+		lcd_draw_image
+    (
+        octopus.xPos,                         // X Pos
+        octopus.width,        // Image Horizontal Width
+        octopus.yPos,                       // Y Pos
+        octopus.height,       // Image Vertical Height
+        octopus.bitmap,            // Image
+        octopus.fColor,              // Foreground Color
+        octopus.bColor              // Background Color
+    );
+		
+		lcd_draw_image
+    (
+        fishArray[0].xPos,                         // X Pos
+          fishArray[0].width,        // Image Horizontal Width
+          fishArray[0].yPos,                       // Y Pos
+          fishArray[0].height,       // Image Vertical Height
+          fishArray[0].bitmap,            // Image
+          fishArray[0].fColor,              // Foreground Color
+          fishArray[0].bColor              // Background Color
+    );
+		
+		lcd_draw_image
+    (
+        fishArray[1].xPos,                         // X Pos
+          fishArray[1].width,        // Image Horizontal Width
+          fishArray[1].yPos,                       // Y Pos
+          fishArray[1].height,       // Image Vertical Height
+          fishArray[1].bitmap,            // Image
+          fishArray[1].fColor,              // Foreground Color
+          fishArray[1].bColor              // Background Color
+    );
+			
+			
+		// black shield
+		lcd_draw_box(
+			shieldArray[1].xPos, //x start
+			shieldArray[1].width, // x len
+			shieldArray[1].yPos, //y s start
+			shieldArray[1].height, // y len
+			shieldArray[1].bColor, //border
+			shieldArray[1].fColor, //fill
+			shieldArray[1].border_weight
+		);
+		// blue shield
+			lcd_draw_box(
+			shieldArray[0].xPos, //x start
+			shieldArray[0].width, // x len
+			shieldArray[0].yPos, //y s start
+			shieldArray[0].height, // y len
+			shieldArray[0].bColor, //border
+			shieldArray[0].fColor, //fill
+			shieldArray[0].border_weight
+		);
+	}

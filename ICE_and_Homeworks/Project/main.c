@@ -36,40 +36,6 @@ volatile uint8_t touch_event = 0;
 
 extern int score, numBullets;
 
-//*****************************************************************************
-// This is an ARRAY of strings.  If you wanted to access the 3rd string
-// ("P10000"), you could do so using COMMANDS[2].
-//*****************************************************************************
-
-void print_string_toLCD(char string[], 
-	uint16_t x_start, 
-	uint16_t y_start, 
-	uint16_t fColor, 
-	uint16_t bColor)
-{
-	char c1, c2;
-	int i,j, xPos;
-	xPos = x_start;
-	c1 =' ';
-	
-	for (i = 0; i < strlen(string); i++)
-	{
-		c2 = string[i]; 
-		
-		lcd_draw_image(xPos, alphabet_Descriptors[c2-c1].widthBits, y_start, 14,
-									&alphabet_Bitmap[alphabet_Descriptors[c2-c1].offset], fColor, bColor);
-		/*
-		// draw in between the spaces
-		for (j = xPos; j < alphabet_Descriptors[c2-c1].widthBits/2 + 4; j++)
-		{
-			lcd_draw_image(xPos, j, y_start, 14,
-									&alphabet_Bitmap[0], fColor, bColor);
-		}
-		*/
-		
-		xPos += alphabet_Descriptors[c2-c1].widthBits/2 + 4;
-	}
-}
 
 
 //*****************************************************************************
@@ -94,6 +60,12 @@ void init_hardware(void)
 		gpio_enable_port(GPIOD_BASE);
 		gpio_config_digital_enable(GPIOD_BASE,0xFF);
 		gpio_config_enable_output(GPIOD_BASE,0xFF);
+	
+	// LED timer
+		gp_timer_config_32(TIMER1_BASE, PERIODIC, false, true, SEC_ONE);
+		
+		// Accelerometer timer
+		gp_timer_config_16(TIMER4_BASE, PERIODIC, false, true, 1570, TIMER_TAPR_TAPSR_M);
 	
  
 		// I2C touchscreen
@@ -134,10 +106,9 @@ void EnableInterrupts(void)
 //*****************************************************************************
 int main(void)
 {
-	 int count, i, numPixels;
+	 int count;
 	 char bulletString[80], scoreString[80];
-	 char startPrompt[80] = "Please press S W2 to begin.\n";
-	
+	 
 	
 	 // ACCELEROMETER
    int16_t x_accel, y_accel, z_accel;
@@ -151,55 +122,14 @@ int main(void)
     put_string("Kevin Wilson\n\r");
     put_string("******************************\n\r");
 	
-		print_string_toLCD(startPrompt, 40, 160, LCD_COLOR_WHITE, BG_COLOR);
-	
 		//eeprom_init_write_read();
 	
-			// LED timer
-		gp_timer_config_32(TIMER1_BASE, PERIODIC, false, true, SEC_ONE);
-		
-		// Accelerometer timer
-		gp_timer_config_16(TIMER4_BASE, PERIODIC, false, true, 1570, TIMER_TAPR_TAPSR_M);
-	
-		
-		lcd_draw_image
-    (
-        octopus.xPos,                         // X Pos
-        octopus.width,        // Image Horizontal Width
-        octopus.yPos,                       // Y Pos
-        octopus.height,       // Image Vertical Height
-        octopus.bitmap,            // Image
-        octopus.fColor,              // Foreground Color
-        octopus.bColor              // Background Color
-    );
-			
-			
-			
-		// black shield
-		lcd_draw_box(
-			shieldArray[1].xPos, //x start
-			shieldArray[1].width, // x len
-			shieldArray[1].yPos, //y s start
-			shieldArray[1].height, // y len
-			shieldArray[1].bColor, //border
-			shieldArray[1].fColor, //fill
-			shieldArray[1].border_weight
-		);
-		// blue shield
-			lcd_draw_box(
-			shieldArray[0].xPos, //x start
-			shieldArray[0].width, // x len
-			shieldArray[0].yPos, //y s start
-			shieldArray[0].height, // y len
-			shieldArray[0].bColor, //border
-			shieldArray[0].fColor, //fill
-			shieldArray[0].border_weight
-		);
+		// draw all initial things to screen
+		gameSetup();
 		
 		
     while(1)
     {
-			
 			// blinking LEDs
 			if(alert_T1A) 
 			{
@@ -232,28 +162,15 @@ int main(void)
 					z_accel = accel_read_z();
 				 
 				 // can shoot about ~0.5s
-				  count = (count + 1) % 55;
+				  count = (count + 1) % 30;
 					alert_T4A = false;
 			}
 			 
-			for (i = 0; i < numShields; i++)
-			{
-				// generate random number to move by in range 1 to 10
-				numPixels = (rand() % 10) + 1;
-				
-				if (shieldArray[i].moveRight) 
-				{
-						// check if should switch direction
-						if (shieldArray[i].xPos + numPixels >= shieldArray[i].max_X) shieldArray[i].moveRight = false;
-						move_Right(shieldArray[i].xPos, shieldArray[i].yPos, numPixels, shieldArray[i].max_X, shieldArray[i].type, &shieldArray[i]);
-					
-				}
-				else
-				{
-					if (shieldArray[i].xPos - numPixels <= 1) shieldArray[i].moveRight = true;
-					move_Left(shieldArray[i].xPos, shieldArray[i].yPos, numPixels, 1, shieldArray[i].type, &shieldArray[i]);
-				}
-			}
+			
+		
+			// call method to move shields back and forth
+			moveShields();
+			moveFish();
 			
 			// Check x values of accelerometer
 			//printf("touch_event: %d \n", touch_event);
@@ -272,7 +189,7 @@ int main(void)
       {
 				
 			  checkShooting();
-				move_Right(octopus.xPos, octopus.yPos, 4, (240 - (octopus.width/2)), octopus.type, &octopus);
+				move_Right(octopus.xPos, octopus.yPos, 4, octopus.max_X, octopus.type, &octopus);
 				checkShooting();
 				//move_Right(shieldArray[1].xPos, shieldArray[1].yPos, 5, shieldArray[1].max_X, shieldArray[1].type, &shieldArray[1]);
 				//move_Left(shieldArray[0].xPos, shieldArray[0].yPos, 10,1, shieldArray[0].type, &shieldArray[0]);
@@ -283,15 +200,16 @@ int main(void)
 					checkShooting();
       }
 			
+			
 			// num bullets
-			lcd_draw_box(0,65, 300, 20, LCD_COLOR_BLACK, LCD_COLOR_RED, 2);
+			lcd_draw_box(0,65, 300, 20, LCD_COLOR_BLACK, LCD_COLOR_RED, 2); // only do if bullets changed
 			sprintf(bulletString,"%d bullets:",numBullets);
 			print_string_toLCD(bulletString, 7, 310, LCD_COLOR_WHITE, LCD_COLOR_RED);
 			
 			// score
-			lcd_draw_box(0,65, 280, 20, LCD_COLOR_BLACK, LCD_COLOR_GREEN, 2);
-			sprintf(scoreString,"score : %d:", score);
-			print_string_toLCD(scoreString, 5, 300, LCD_COLOR_WHITE, LCD_COLOR_GREEN);
+			lcd_draw_box(0,65, 280, 20, LCD_COLOR_BLACK, LCD_COLOR_GREEN, 2); // only do if score changed
+			sprintf(scoreString,"score %d:", score);
+			print_string_toLCD(scoreString, 6, 290, LCD_COLOR_BLACK, LCD_COLOR_GREEN);
 			
 		}
 

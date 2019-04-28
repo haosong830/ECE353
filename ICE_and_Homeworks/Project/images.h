@@ -33,6 +33,11 @@ extern const uint8_t octopus_width;
 extern const uint8_t octopus_height;
 extern const uint8_t octopus_Bitmap[];
 
+extern const uint8_t fish_width;
+extern const uint8_t fish_height;
+extern const uint8_t fishRight_Bitmap[];
+extern const uint8_t fishLeft_Bitmap[];
+
 
 // maybe put in other file
 
