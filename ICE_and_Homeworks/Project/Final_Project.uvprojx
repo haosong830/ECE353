@@ -401,11 +401,6 @@
               <FilePath>.\main.h</FilePath>
             </File>
             <File>
-              <FileName>game_eeprom.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\game_eeprom.c</FilePath>
-            </File>
-            <File>
               <FileName>alphabet.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\alphabet.c</FilePath>
@@ -444,6 +439,16 @@
               <FileName>buttons.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\buttons.h</FilePath>
+            </File>
+            <File>
+              <FileName>ioexpander.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\ioexpander.c</FilePath>
+            </File>
+            <File>
+              <FileName>ioexpander.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\ioexpander.h</FilePath>
             </File>
           </Files>
         </Group>

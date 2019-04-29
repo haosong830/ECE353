@@ -212,19 +212,37 @@ void shootBullet (uint16_t xPos,
 		// Check if bullet has hit any shields
 		 for (i = 0; i < numShields; i++)
 		{
-			//printf("bullet x: %d\n shield x: %d\n", 
-						//obj->xPos, 
-						//shieldArray[i].xPos);
-			
 					 if (obj->yPos == (shieldArray[i].yPos + shieldArray[i].height) &&
 						   obj->xPos < (shieldArray[i].xPos + shieldArray[i].width) &&
 							 (obj->xPos + obj->width) >= shieldArray[i].xPos)
 					 {
 						 obj->hit = true;
-					 }
+						 enableLeds();
+					 }	 
+		// empty loop to make bullet move slower
+		for (j = 0; j<5000; j++){}
 		}
-		 for (j = 0; j<5000; j++){}
+		disableLeds();
+		
+		// Check if bullet has hit any shields
+		 for (i = 0; i < numFish; i++)
+		{
+					 if (obj->yPos == (fishArray[i].yPos + fishArray[i].height) &&
+						   obj->xPos < (fishArray[i].xPos + fishArray[i].width) &&
+							 (obj->xPos + obj->width) >= fishArray[i].xPos)
+					 {
+						 obj->hit = true;
+						 enableLeds();
+						 fishArray[i].hit = true;
+					 }	 
+		}
+		// empty loop to make bullet move slower
+	for (j = 0; j<5000; j++){}
 	}
+	disableLeds();
+	
+	
+	
 	// erase bullet
 	lcd_draw_box(obj->xPos, //x start
 								obj->width, // x len
@@ -347,12 +365,15 @@ void checkShooting()
 }
 
 
-
 void gameSetup()
 {
-	 char startPrompt[80] = "Please press S W2 to begin.\n";
-	print_string_toLCD(startPrompt, 40, 160, LCD_COLOR_WHITE, BG_COLOR);
-		
+	
+		 char startPrompt[80] = "Please press S W2 to begin.\n";
+		 print_string_toLCD(startPrompt, 40, 160, LCD_COLOR_WHITE, BG_COLOR);\
+		 eeprom_init_write_read();
+		 //lcd_clear_screen(BG_COLOR);
+	
+	
 		lcd_draw_image
     (
         octopus.xPos,                         // X Pos

@@ -2,9 +2,13 @@
 #define __EEPROM_H__
 
 
+#include <stdio.h>
 #include <stdint.h>
+#include <string.h>
+#include <stdlib.h>
 #include "i2c.h"
 #include "gpio_port.h"
+#include "I:\ECE353\ICE_and_Homeworks\Project\buttons.h"
 
 #define MCP24LC32AT_DEV_ID			0x50
 #define EEPROM_TEST_NUM_BYTES    20
@@ -68,6 +72,9 @@ i2c_status_t eeprom_byte_read
 // Initialize the EEPROM peripheral
 //*****************************************************************************
 bool eeprom_init(void);
+void write_to_eeprom(char string[], uint16_t address);
+void read_from_eprom(uint16_t address, uint8_t *read_val);
+void eeprom_init_write_read();
 
 
 #endif

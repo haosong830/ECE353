@@ -217,3 +217,76 @@ bool eeprom_init(void)
   
 }
 
+void write_to_eeprom(char string[], uint16_t address);
+void read_from_eprom(uint16_t address, uint8_t *read_val);
+
+void eeprom_init_write_read()
+{
+    int i;
+    uint8_t read_val;
+    bool sw2_logic_level;
+
+    // When reset pressed, print this.
+    char reset[] = "Please press SW2 to get student info\n"
+                     "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";
+
+    char name1[] = "Student 1: Kevin Wilson\n";
+    char name2[] = "Student 2: Haosong Ma\n";
+    char teamNum[] = "Team number: 13\n";
+
+    write_to_eeprom(reset, 250);
+		
+		for (i = 250; i < 250+strlen(reset); i++) 
+		{
+		read_from_eprom(i, &read_val);
+		printf("%c", (char) read_val);
+		} 
+			
+		/*
+		sw2_logic_level = false;
+    while(!sw2_logic_level)
+    {
+      sw2_logic_level = button_pressed(SW2_BIT);
+    }
+		*/
+		
+		
+		 write_to_eeprom(name1, 330);
+		 for (i = 330; i < 330+strlen(name1); i++) 
+			{
+			read_from_eprom(i, &read_val);
+			printf("%c", (char) read_val);
+			} 
+		
+		 write_to_eeprom(name2, 410);
+			for (i = 410; i < 410+strlen(name2); i++) 
+			{
+			read_from_eprom(i, &read_val);
+			printf("%c", (char) read_val);
+			} 
+		 write_to_eeprom(teamNum, 490);
+			for (i = 490; i < 490+strlen(teamNum); i++) 
+			{
+			read_from_eprom(i, &read_val);
+			printf("%c", (char) read_val);
+			} 
+    
+    return;
+}
+
+void write_to_eeprom(char string[], uint16_t address)
+{
+	int i;
+	for (i = 0; i < strlen(string); i++)
+		eeprom_byte_write(I2C1_BASE, address++, (uint8_t) string[i]);
+}
+
+void read_from_eprom(uint16_t address, uint8_t *read_val)
+{
+	eeprom_byte_read(I2C1_BASE, address, read_val);
+}
+
+
+
+
+

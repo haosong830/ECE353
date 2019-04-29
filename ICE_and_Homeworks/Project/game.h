@@ -7,6 +7,8 @@
 #include "validate.h"
 #include "ft6x06.h"
 #include "timers.h"
+#include "ioexpander.h"
+#include "eeprom.h"
 
 #define UFO_X_MAX 214
 #define UFO_X_MIN 26

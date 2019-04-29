@@ -67,6 +67,8 @@ void init_hardware(void)
 		// Accelerometer timer
 		gp_timer_config_16(TIMER4_BASE, PERIODIC, false, true, 1570, TIMER_TAPR_TAPSR_M);
 	
+	 // enable io expander
+	 io_expander_init();
  
 		// I2C touchscreen
 		 ft6x06_init();
@@ -114,39 +116,40 @@ int main(void)
    int16_t x_accel, y_accel, z_accel;
 	 uint16_t x_touch, y_touch;
 
-    init_hardware();
-		
+   init_hardware();
+	 gameSetup();
+	 
+	
 		put_string("\n\r");
     put_string("******************************\n\r");
     put_string("ECE353 HW2 Spring 2019\n\r");
     put_string("Kevin Wilson\n\r");
     put_string("******************************\n\r");
 	
-		//eeprom_init_write_read();
 	
 		// draw all initial things to screen
-		gameSetup();
+		
 		
 		
     while(1)
     {
-			// blinking LEDs
+			// Blink red LEDS
 			if(alert_T1A) 
-			{
+				{
 				//put_string("T1A\n");
-				if(count1A == 0) {
-					//put_string("entered count1A == 0\n");
-					//hw1_search_memory((uint32_t)clear_command);
+				if(count1A == 0) 
+				{
+					//disableLeds();
+					lp_io_set_pin(BLUE_BIT);
 				}
 				else if(count1A == 1) {
-					//put_string("entered count1A == 1\n");
-					//hw1_search_memory((uint32_t)en_command);
+					//enableLeds();
+					lp_io_clear_pin(BLUE_BIT);
 				}
 				alert_T1A = false;
 				count1A = (count1A + 1) % 2;
 			}
-			
-			
+	
 			if(alert_T4A)
 			 {
 				 if (count == 0)
@@ -212,6 +215,4 @@ int main(void)
 			print_string_toLCD(scoreString, 6, 290, LCD_COLOR_BLACK, LCD_COLOR_GREEN);
 			
 		}
-
- }
-
+	}

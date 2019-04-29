@@ -39,6 +39,7 @@ extern void serialDebugInit(void);
 #include "alphabet.h"
 #include "game.h"
 #include "buttons.h"
+#include "ioexpander.h"
 
 // LCD stuff
 #include "images.h"
