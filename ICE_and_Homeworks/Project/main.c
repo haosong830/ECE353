@@ -30,17 +30,18 @@ char bulletString[80], scoreString[80];
 
 int16_t x_accel, y_accel, z_accel;
 uint16_t x_touch, y_touch;
-char en_command[] = "LOAD LED0105020 LED1440070  LED2111111  LED3002233  LED4440066  LED5667700 LED6550000 LED79900bb HALT";
+char en_command[] = "LOAD LED00000FF LED10000FF  LED20000FF  LED30000FF LED40000FF  LED50000FF LED60000FF  LED70000FF HALT";
 char clear_command[] = "LOAD LED000000 LED1000000  LED2000000  LED3000000  LED4000000  LED5000000 LED6000000 LED7000000 HALT";
 
 extern bool alert_T4A;
 extern bool alert_T1A;
 volatile bool readyShoot = false;
 volatile uint8_t touch_event = 0;
-extern bool alert_btn;
+extern bool alert_btn, fishHit;
 extern int score, numBullets;
 
 
+int i,j;
 int count1A = 0;
 uint8_t btn_dir;
 uint8_t sw_val;
@@ -215,13 +216,34 @@ void printStartPage() {
 void printEndPage() {
 		//char startPrompt[80] = "Please press SW2 to begin.\n";
 		//print_string_toLCD(startPrompt, 40, 160, LCD_COLOR_WHITE, BG_COLOR);
+		uint8_t highScore;
 		char finalScoreString[80];
+		char highScoreString[80];
+
+		
+		// get the current high score out of the eeprom
+		eeprom_byte_read(I2C1_BASE,350,&highScore);
+		sprintf(highScoreString, "%d", highScore);
 	
-		lcd_draw_image(MID_X,240,MID_Y,320,endscreen_Bitmap,LCD_COLOR_BLACK,LCD_COLOR_RED);
+		// and update if player got new high score
+		if (score > highScore) 
+		{
+			eeprom_byte_write(I2C1_BASE,350,score);
+			sprintf(highScoreString, "%d", score);
+		}
+		
+		// the game over screen
+		lcd_draw_image(MID_X,240,MID_Y,320,endscreen_Bitmap,LCD_COLOR_BLACK,LCD_COLOR_BLUE2);
 		
 		sprintf(finalScoreString, "%d", score);
 	
-		print_string_toLCD(finalScoreString, 180, 120, LCD_COLOR_WHITE, LCD_COLOR_RED);
+		print_string_toLCD(finalScoreString, 180, 130, LCD_COLOR_WHITE, LCD_COLOR_BLUE2);
+		print_string_toLCD(highScoreString, 180, 90, LCD_COLOR_WHITE, LCD_COLOR_BLUE2);
+		
+		printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+		printf("Your Score: %d\n", score);
+		printf("High Score: %d", highScore);
+		
 	
 		while(1){};
 }
@@ -237,15 +259,17 @@ void instructionScreen() {
 		lcd_draw_image(20,ARROWS_WIDTH_PIXELS,120,ARROWS_HEIGHT_PIXELS,up_arrowBitmaps,fcolor,LCD_COLOR_BLACK);
 		print_string_toLCD("Pause and Unpause", MID_X,120,fcolor,LCD_COLOR_BLACK);
 		lcd_draw_image(20,ARROWS_WIDTH_PIXELS,220,ARROWS_HEIGHT_PIXELS,left_arrowBitmaps,fcolor,LCD_COLOR_BLACK);
-		print_string_toLCD("Move Right", MID_X,220,fcolor,LCD_COLOR_BLACK);
+		print_string_toLCD("Change colors", MID_X,220,fcolor,LCD_COLOR_BLACK);
 		lcd_draw_image(20,ARROWS_WIDTH_PIXELS,300,ARROWS_HEIGHT_PIXELS,right_arrowBitmaps,fcolor,LCD_COLOR_BLACK);
-		print_string_toLCD("Move Left", MID_X,300,fcolor,LCD_COLOR_BLACK);
+		print_string_toLCD("Change colors", MID_X,300,fcolor,LCD_COLOR_BLACK);
 		for(j = 0; j < 200000; j++){}
 		}
 }
 
 void printGameScreen() {	
 			moveShields();
+	
+	
 			moveFish();
 			
 	
@@ -295,7 +319,7 @@ void printGameScreen() {
 				
 				// score
 				lcd_draw_box(0,65, 280, 20, LCD_COLOR_BLACK, LCD_COLOR_GREEN, 2); // only do if score changed
-				sprintf(scoreString,"score %d:", 5);
+				sprintf(scoreString,"score %d:", score);
 				print_string_toLCD(scoreString, 6, 290, LCD_COLOR_BLACK, LCD_COLOR_GREEN);
 				// call method to move shields back and forth
 			}
@@ -312,13 +336,16 @@ void printGameScreen() {
 /*Thought: have difficulty of Hard and Easy. Both have 30 bullets with a goal of 20 hits. For Hard mode fish will move faster. May have 'bonus' fish*/
 int main(void)
 {
-	 int count;
-   init_hardware();
+	int count;
+  init_hardware();
+	
 	//print out setup message
+	put_string("\n\r");
+  put_string("******************************\n\r");
 	put_string("ECE353 SP19 Final Project\n\r");
+	put_string("******************************\n\r");
 	printStartPage();
 	instructionScreen();
-	
 	
 		// draw all initial things to screen
 		
@@ -331,11 +358,10 @@ int main(void)
 					//put_string("T1A\n");
 					if(count1A == 0) 
 					{
-						disableLeds();
 						lp_io_set_pin(BLUE_BIT);
 					}
 					else if(count1A == 1) {
-						enableLeds();
+
 						lp_io_clear_pin(BLUE_BIT);
 					}
 					alert_T1A = false;
@@ -391,8 +417,21 @@ int main(void)
 					alert_btn = false;
 			}
 			
-				
 			
+				 // blink top leds if fish was hit
+				if (fishHit == true)
+				{
+					enableLeds();
+					
+					for (i = 0; i < 100000; i++) {}
+
+					disableLeds();
+			
+					fishHit = false;
+					//hw1_search_memory((uint32_t) clear_command);
+				}
+				
+				
 				// if game not started, draw images 
 				
 				// if not pausing, print everything out
@@ -401,7 +440,6 @@ int main(void)
 					// update bullet color and octopus color
 					bullet.fColor = colorArray[colorArrayIndex];
 					octopus.fColor = colorArray[colorArrayIndex];
-					
 					
 					// if haven't been drawn yet, draw initial images
 					if (gameStarted == false) {

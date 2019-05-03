@@ -4,7 +4,8 @@ extern uint8_t touch_event;
 
 
 int score = 0;
-int numBullets = 20;
+int numBullets = 7;
+bool fishHit = false;
 
 // possible colors for the fish
 uint16_t colorArray[6] = {LCD_COLOR_RED, LCD_COLOR_GREEN, LCD_COLOR_ORANGE,
@@ -30,9 +31,9 @@ _GameCharacter fishArray[] =
 	//Fish 0
 	{
 		39, 31, // width,height
-		100, 205, // xPos, yPos
+		130, 205, // xPos, yPos
 		fishLeft_Bitmap,
-		LCD_COLOR_RED,
+		LCD_COLOR_BLACK,
 		BG_COLOR,
 		"character",
 		FISH_X_MAX,
@@ -44,7 +45,7 @@ _GameCharacter fishArray[] =
 	//Fish 1
 	{
 		39, 31, // width,height
-		50, 19,
+		10, 19,
 		fishRight_Bitmap,
 		LCD_COLOR_GREEN,
 		BG_COLOR,
@@ -58,7 +59,7 @@ _GameCharacter fishArray[] =
 	//Fish 2
 	{
 		39, 31, // width,height
-		70, 100, // x, y
+		210, 100, // x, y
 		fishRight_Bitmap,
 		LCD_COLOR_ORANGE,
 		BG_COLOR,
@@ -67,7 +68,22 @@ _GameCharacter fishArray[] =
 		FISH_Y_MIN,
 		true,
 		false
+	},
+	
+	//Fish 3
+	{
+		39, 31, // width,height
+		75, 150, // x, y
+		fishLeft_Bitmap,
+		LCD_COLOR_YELLOW,
+		BG_COLOR,
+		"character",
+		FISH_X_MAX,
+		FISH_Y_MIN,
+		false,
+		false
 	}
+	
 };
 							
 
@@ -86,15 +102,28 @@ _GameObj shieldArray[] =
 	false},
 	
 	//Rectangle 1
-	{30, 5, 1, 				// width, height, border
-	50, 120, 						//x,y
+	{30, 7, 1, 				// width, height, border
+	10, 120, 						//x,y
 	LCD_COLOR_BLACK,		// fill
 	BG_COLOR,  	//border	
 	"object",
 	239 - 30,
-	1,									// min y
+	10,									// min y
 	false,							// moveRight
+	false},
+	
+	//Rectangle 2
+	{30, 6, 1, 				// width, height, border
+	5, 250, 					//x,y
+	LCD_COLOR_WHITE,		// fill
+	BG_COLOR,  				//border	
+	"object",
+	239 - 70,
+	20,								// min y
+	false,						// moveRight
 	false}
+	
+
 																				
 };				
 
@@ -109,8 +138,6 @@ _GameObj bullet = {10, 10, 1, 			// width, height, border
 									239 - 10,
 									1,							//min y, probably take out
 									false}; 
-
-
 											
 void move_Left(uint16_t xPos, 
 							uint16_t yPos, 
@@ -184,8 +211,6 @@ void move_Right(uint16_t xPos,
 
 
 
-
-
 void shootBullet (uint16_t xPos, 
 								  uint16_t yPos, 
 								  _GameObj* obj)
@@ -216,20 +241,49 @@ void shootBullet (uint16_t xPos,
 		for (j = 0; j<5000; j++){}
 		}
 		
-		// Check if bullet has hit any shields
+		// Check if bullet has hit any fish
 		 for (i = 0; i < numFish; i++)
 		{
-					 if (obj->yPos == (fishArray[i].yPos + fishArray[i].height) &&
-						   obj->xPos < (fishArray[i].xPos + fishArray[i].width) &&
-							 (obj->xPos + obj->width) >= fishArray[i].xPos)
+					 if (obj->yPos == (fishArray[i].yPos + fishArray[i].height) && // height collison
+						   obj->xPos < (fishArray[i].xPos + fishArray[i].width/2) && // less than right side of fish
+							 (obj->xPos + obj->width + 13) >= fishArray[i].xPos && 	 // greater than left side of fish]
+					     obj->fColor == fishArray[i].fColor)  												// same color bullet as fish
+				
 					 {
 						 obj->hit = true;
-					
+						 fishHit = true;
 						 fishArray[i].hit = true;
+						 numBullets++;
+						 score++;
+						 break;
 					 }	 
 		}
+		
+		
 		// empty loop to make bullet move slower
 	for (j = 0; j<5000; j++){}
+		
+		if (fishHit == true)
+		{
+			for (i = 0; i < numFish; i++)
+			{
+				// erase old fish
+				lcd_draw_image
+				(
+        fishArray[i].xPos,                         // X Pos
+        fishArray[i].width,        // Image Horizontal Width
+        fishArray[i].yPos,                       // Y Pos
+        fishArray[i].height,       // Image Vertical Height
+        fishArray[i].bitmap,            // Image
+        fishArray[i].bColor,              // Foreground Color
+        fishArray[i].bColor              // Background Color
+				);
+				
+				// randomly switch color of fish
+				fishArray[i].fColor = colorArray[(rand() % 6)];
+				fishArray[i].xPos = rand() % 200;
+			}
+		}
 	}
 	
 	
@@ -314,17 +368,16 @@ void moveFish()
 			for (i = 0; i < numFish; i++)
 			{
 				// generate random number to move by in range 1 to 10
-				//numPixels = (rand() % 10) + 1;
-				numPixels = 5;
-				
+				numPixels = (rand() % 10) + 1;
 				if (fishArray[i].moveRight) 
 				{
 						// check if should switch direction
-						if (fishArray[i].xPos + numPixels >= fishArray[i].max_X)
+						if (fishArray[i].xPos + numPixels >= fishArray[i].max_X - 10)
 						{
 							fishArray[i].moveRight = false;
 							fishArray[i].bitmap = fishLeft_Bitmap;
 						}
+
 						move_Right(fishArray[i].xPos, fishArray[i].yPos, numPixels, fishArray[i].max_X, fishArray[i].type, &fishArray[i]);
 				}
 				else
@@ -332,6 +385,9 @@ void moveFish()
 					if (fishArray[i].xPos - numPixels <= 20)
 					{
 						fishArray[i].moveRight = true;
+						
+						
+						
 						fishArray[i].bitmap = fishRight_Bitmap;
 					}
 					move_Left(fishArray[i].xPos, fishArray[i].yPos, numPixels, 1, fishArray[i].type, &fishArray[i]);
