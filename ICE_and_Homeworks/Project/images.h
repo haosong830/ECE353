@@ -41,10 +41,11 @@ extern const uint8_t fishLeft_Bitmap[];
 
 // maybe put in other file
 
-extern const uint8_t space_shipBitmaps[];
-extern const uint8_t img[];
-extern const uint8_t space_shipWidthPages;
-extern const uint8_t space_shipWidthPixels;
-extern const uint8_t space_shipHeightPixels;
+
+extern const uint8_t start_map[];
+extern const uint16_t start_width;
+extern const uint16_t start_height;
+
+extern const uint8_t endscreen_Bitmap[];
 
 #endif

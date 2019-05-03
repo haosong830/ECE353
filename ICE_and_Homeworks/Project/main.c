@@ -26,17 +26,42 @@
 uint16_t ufo_xPos, ufo_yPos;
 extern void hw1_search_memory(uint32_t addr); 
 
+char bulletString[80], scoreString[80];
+
+int16_t x_accel, y_accel, z_accel;
+uint16_t x_touch, y_touch;
 char en_command[] = "LOAD LED0105020 LED1440070  LED2111111  LED3002233  LED4440066  LED5667700 LED6550000 LED79900bb HALT";
 char clear_command[] = "LOAD LED000000 LED1000000  LED2000000  LED3000000  LED4000000  LED5000000 LED6000000 LED7000000 HALT";
-int count1A = 0;
+
 extern bool alert_T4A;
 extern bool alert_T1A;
 volatile bool readyShoot = false;
 volatile uint8_t touch_event = 0;
-
+extern bool alert_btn;
 extern int score, numBullets;
 
 
+int count1A = 0;
+uint8_t btn_dir;
+uint8_t sw_val;
+
+bool debounce = true;
+
+uint16_t fcolor;
+uint16_t bcolor;
+
+bool showHUD = true;
+bool pause = true;
+bool HUD_erased = false;
+bool gameStarted = false;
+bool colorChange = false;
+
+
+extern uint16_t colorArray[6];
+	
+
+
+uint8_t colorArrayIndex=0;
 
 //*****************************************************************************
 //*****************************************************************************
@@ -66,7 +91,7 @@ void init_hardware(void)
 		
 		// Accelerometer timer
 		gp_timer_config_16(TIMER4_BASE, PERIODIC, false, true, 1570, TIMER_TAPR_TAPSR_M);
-	
+
 	 // enable io expander
 	 io_expander_init();
  
@@ -106,75 +131,131 @@ void EnableInterrupts(void)
 
 //*****************************************************************************
 //*****************************************************************************
-int main(void)
-{
-	 int count;
-	 char bulletString[80], scoreString[80];
-	 
-	
-	 // ACCELEROMETER
-   int16_t x_accel, y_accel, z_accel;
-	 uint16_t x_touch, y_touch;
-
-   init_hardware();
-	 gameSetup();
-	 
-	
-		put_string("\n\r");
-    put_string("******************************\n\r");
-    put_string("ECE353 HW2 Spring 2019\n\r");
-    put_string("Kevin Wilson\n\r");
-    put_string("******************************\n\r");
-	
-	
-		// draw all initial things to screen
+void drawInitialImages() {
+		lcd_draw_image
+    (
+        octopus.xPos,                         // X Pos
+        octopus.width,        // Image Horizontal Width
+        octopus.yPos,                       // Y Pos
+        octopus.height,       // Image Vertical Height
+        octopus.bitmap,            // Image
+        octopus.fColor,              // Foreground Color
+        octopus.bColor              // Background Color
+    );
 		
+		lcd_draw_image
+    (
+        fishArray[0].xPos,                         // X Pos
+          fishArray[0].width,        // Image Horizontal Width
+          fishArray[0].yPos,                       // Y Pos
+          fishArray[0].height,       // Image Vertical Height
+          fishArray[0].bitmap,            // Image
+          fishArray[0].fColor,              // Foreground Color
+          fishArray[0].bColor              // Background Color
+    );
 		
-		
-    while(1)
-    {
-			// Blink red LEDS
-			if(alert_T1A) 
-				{
-				//put_string("T1A\n");
-				if(count1A == 0) 
-				{
-					//disableLeds();
-					lp_io_set_pin(BLUE_BIT);
-				}
-				else if(count1A == 1) {
-					//enableLeds();
-					lp_io_clear_pin(BLUE_BIT);
-				}
-				alert_T1A = false;
-				count1A = (count1A + 1) % 2;
-			}
-	
-			if(alert_T4A)
-			 {
-				 if (count == 0)
-				 {
-					 readyShoot = true;
-				 }
-				 
-				 // check touchscreen
-				 touch_event = ft6x06_read_td_status();
-				
-				 // read accelerometer
-				 	x_accel = accel_read_x();
-					z_accel = accel_read_z();
-				 
-				 // can shoot about ~0.5s
-				  count = (count + 1) % 30;
-					alert_T4A = false;
-			}
-			 
+		lcd_draw_image
+    (
+        fishArray[1].xPos,                         // X Pos
+          fishArray[1].width,        // Image Horizontal Width
+          fishArray[1].yPos,                       // Y Pos
+          fishArray[1].height,       // Image Vertical Height
+          fishArray[1].bitmap,            // Image
+          fishArray[1].fColor,              // Foreground Color
+          fishArray[1].bColor              // Background Color
+    );
 			
+			
+		// black shield
+		lcd_draw_box(
+			shieldArray[1].xPos, //x start
+			shieldArray[1].width, // x len
+			shieldArray[1].yPos, //y s start
+			shieldArray[1].height, // y len
+			shieldArray[1].bColor, //border
+			shieldArray[1].fColor, //fill
+			shieldArray[1].border_weight
+		);
+		// blue shield
+			lcd_draw_box(
+			shieldArray[0].xPos, //x start
+			shieldArray[0].width, // x len
+			shieldArray[0].yPos, //y s start
+			shieldArray[0].height, // y len
+			shieldArray[0].bColor, //border
+			shieldArray[0].fColor, //fill
+			shieldArray[0].border_weight
+		);
+}
+
+void printStartPage() {
+			while(1) {
+				fcolor = rand();
+				bcolor = rand();  
+				for(i = 0; i < 100000; i++){}		//to change color slower
+				lcd_draw_image(MID_X,start_width,MID_Y,start_height,start_map,  fcolor , bcolor);
+					
+				if(alert_btn) {
+					btn_dir = io_expander_read_reg(MCP23017_INTCAPB_R);
+					//btn_dir = debounce_expander_fsm(btn_dir);
+					//printf("%d\n",btn_dir);
+					//if(btn_dir == 15) {//when BUTTON is in IDLE state, the value is 0xf
+						if(!debounce) {
+							eeprom_init_write_read();
+							debounce = true;
+							break;
+						}
+					debounce = false;
+					alert_btn = false;
+				}
+			}	
+}
+
+// function prints end screen and stays there until user presses reset
+void printEndPage() {
+		//char startPrompt[80] = "Please press SW2 to begin.\n";
+		//print_string_toLCD(startPrompt, 40, 160, LCD_COLOR_WHITE, BG_COLOR);
+		char finalScoreString[80];
+	
+		lcd_draw_image(MID_X,240,MID_Y,320,endscreen_Bitmap,LCD_COLOR_BLACK,LCD_COLOR_RED);
 		
-			// call method to move shields back and forth
+		sprintf(finalScoreString, "%d", score);
+	
+		print_string_toLCD(finalScoreString, 180, 120, LCD_COLOR_WHITE, LCD_COLOR_RED);
+	
+		while(1){};
+}
+
+void instructionScreen() {
+	lcd_clear_screen(LCD_COLOR_BLACK);
+
+		for(i = 0; i < 50; i++) {
+		fcolor = rand();
+		bcolor = rand();
+		lcd_draw_image(20,ARROWS_WIDTH_PIXELS,20,ARROWS_HEIGHT_PIXELS,down_arrowBitmaps,fcolor,LCD_COLOR_BLACK);
+		print_string_toLCD("Hide the H U D", MID_X,15,fcolor,LCD_COLOR_BLACK);
+		lcd_draw_image(20,ARROWS_WIDTH_PIXELS,120,ARROWS_HEIGHT_PIXELS,up_arrowBitmaps,fcolor,LCD_COLOR_BLACK);
+		print_string_toLCD("Pause and Unpause", MID_X,120,fcolor,LCD_COLOR_BLACK);
+		lcd_draw_image(20,ARROWS_WIDTH_PIXELS,220,ARROWS_HEIGHT_PIXELS,left_arrowBitmaps,fcolor,LCD_COLOR_BLACK);
+		print_string_toLCD("Move Right", MID_X,220,fcolor,LCD_COLOR_BLACK);
+		lcd_draw_image(20,ARROWS_WIDTH_PIXELS,300,ARROWS_HEIGHT_PIXELS,right_arrowBitmaps,fcolor,LCD_COLOR_BLACK);
+		print_string_toLCD("Move Left", MID_X,300,fcolor,LCD_COLOR_BLACK);
+		for(j = 0; j < 200000; j++){}
+		}
+}
+
+void printGameScreen() {	
 			moveShields();
 			moveFish();
 			
+	
+	
+			//check numBullets
+			if (numBullets == 0)
+			{
+				printEndPage();
+			}
+	
 			// Check x values of accelerometer
 			//printf("touch_event: %d \n", touch_event);
      // sprintf(msg,"X: %d\n\r",x);
@@ -204,15 +285,151 @@ int main(void)
       }
 			
 			
-			// num bullets
-			lcd_draw_box(0,65, 300, 20, LCD_COLOR_BLACK, LCD_COLOR_RED, 2); // only do if bullets changed
-			sprintf(bulletString,"%d bullets:",numBullets);
-			print_string_toLCD(bulletString, 7, 310, LCD_COLOR_WHITE, LCD_COLOR_RED);
+				// check if user wants to see this printed out or not
+			if (showHUD) {
+				HUD_erased = false;
+				// num bullets. Depending on bullet color, BG COLOR will be different.
+				lcd_draw_box(0,65, 300, 20, LCD_COLOR_BLACK, LCD_COLOR_RED, 2); // only do if bullets changed
+				sprintf(bulletString,"%d bullets:",numBullets);
+				print_string_toLCD(bulletString, 7, 310, LCD_COLOR_WHITE, LCD_COLOR_RED);
+				
+				// score
+				lcd_draw_box(0,65, 280, 20, LCD_COLOR_BLACK, LCD_COLOR_GREEN, 2); // only do if score changed
+				sprintf(scoreString,"score %d:", 5);
+				print_string_toLCD(scoreString, 6, 290, LCD_COLOR_BLACK, LCD_COLOR_GREEN);
+				// call method to move shields back and forth
+			}
+			else
+			{
+				
+				if (HUD_erased == false) 
+				{
+					lcd_draw_box(0,65, 280, 40, BG_COLOR, BG_COLOR, 0);
+					HUD_erased = true;
+				}
+			}
+}
+/*Thought: have difficulty of Hard and Easy. Both have 30 bullets with a goal of 20 hits. For Hard mode fish will move faster. May have 'bonus' fish*/
+int main(void)
+{
+	 int count;
+   init_hardware();
+	//print out setup message
+	put_string("ECE353 SP19 Final Project\n\r");
+	printStartPage();
+	instructionScreen();
+	
+	
+		// draw all initial things to screen
+		
+    while(1) //infinite loop of the whole game
+    {
+	
+				// Blink red LEDS
+				if(alert_T1A) 
+				{
+					//put_string("T1A\n");
+					if(count1A == 0) 
+					{
+						disableLeds();
+						lp_io_set_pin(BLUE_BIT);
+					}
+					else if(count1A == 1) {
+						enableLeds();
+						lp_io_clear_pin(BLUE_BIT);
+					}
+					alert_T1A = false;
+					count1A = (count1A + 1) % 2;
+				}
+		
+				if(alert_T4A)
+				{
+					 if (count == 0)
+					 {
+						 readyShoot = true;
+					 }
+					 // check touchscreen
+					 touch_event = ft6x06_read_td_status();
+					 // read accelerometer
+						x_accel = accel_read_x();
+						z_accel = accel_read_z();
+					 // can shoot abo ut ~0.5s
+						count = (count + 1) % 30;
+						alert_T4A = false;
+				}
+
+				
+				// Push buttons
+				if(alert_btn) {
+					btn_dir = io_expander_read_reg(MCP23017_INTCAPB_R);
+						
+						switch (btn_dir)
+						{
+							case BTN_L:
+								// loop around array
+								if (colorArrayIndex == 0) colorArrayIndex = 5;
+								else colorArrayIndex--;
+								colorChange = true;
+								break;
+							
+							case BTN_R:
+								colorArrayIndex = (colorArrayIndex + 1) % 6;
+								colorChange = true;
+								break;
+								
+							case BTN_U:
+								showHUD = !showHUD;
+								break;
+							
+							case BTN_D:
+								pause = !pause;
+								break;
+							
+							default:
+								break;
+						}	
+					alert_btn = false;
+			}
 			
-			// score
-			lcd_draw_box(0,65, 280, 20, LCD_COLOR_BLACK, LCD_COLOR_GREEN, 2); // only do if score changed
-			sprintf(scoreString,"score %d:", score);
-			print_string_toLCD(scoreString, 6, 290, LCD_COLOR_BLACK, LCD_COLOR_GREEN);
+				
 			
-		}
-	}
+				// if game not started, draw images 
+				
+				// if not pausing, print everything out
+				if (pause == false) 
+				{
+					// update bullet color and octopus color
+					bullet.fColor = colorArray[colorArrayIndex];
+					octopus.fColor = colorArray[colorArrayIndex];
+					
+					
+					// if haven't been drawn yet, draw initial images
+					if (gameStarted == false) {
+						lcd_clear_screen(BG_COLOR);
+						drawInitialImages();
+						gameStarted = true;
+					}
+					
+					// redraw octopus if color changed
+					if (colorChange == true) 
+					{
+						lcd_draw_image
+						(
+								octopus.xPos,                         // X Pos
+								octopus.width,        // Image Horizontal Width
+								octopus.yPos,                       // Y Pos
+								octopus.height,       // Image Vertical Height
+								octopus.bitmap,            // Image
+								octopus.fColor,              // Foreground Color
+								octopus.bColor              // Background Color
+						);
+						// wait until another button press
+						colorChange = false;
+					}
+				
+					printGameScreen();
+				}
+		}	
+		
+			
+}

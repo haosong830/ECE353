@@ -2,54 +2,45 @@
 #include "gpio_port.h"
 #include "TM4C123.h"
 #include "i2c.h"
-#include "ioexpander.h"
-#define BTN_NONE	0x0F
-#define BTN_U		0x0E
-#define BTN_D		0x0D
-#define BTN_L		0x0B
-#define BTN_R		0x07
-#define	BTN_UD		0x0C
-#define BTN_UL		0x0A
-#define BTN_UR		0x06
-#define BTN_LR		0x03
-#define BTN_LD		0x09
-#define BTN_DR		0x05
-i2c_status_t io_expander_byte_write( uint32_t i2c_base, uint16_t addr, uint8_t data) {
+#include "io_expander.h"
+
+extern bool alert_btn;
+
+    
+
+uint8_t io_expander_read_reg(uint8_t addr) {
+	uint8_t data_read;
+	i2c_status_t i2c_status;
+	while(I2CMasterBusy(I2C1_BASE)){};
+		    
+	i2c_status = i2cSetSlaveAddr(I2C1_BASE, MCP23017_DEV_ID, I2C_WRITE); 
+	if (i2c_status != I2C_OK )
+		return i2c_status;
+		
+	i2c_status = i2cSendByte(I2C1_BASE, addr, I2C_MCS_START | I2C_MCS_RUN);
+	if ( i2c_status != I2C_OK )
+		return i2c_status;
+	
+	i2c_status = i2cSetSlaveAddr(I2C1_BASE, MCP23017_DEV_ID, I2C_READ);
+	if ( i2c_status != I2C_OK )
+		return i2c_status;
+			
+	i2c_status = i2cGetByte(I2C1_BASE, &data_read, I2C_MCS_START | I2C_MCS_RUN | I2C_MCS_STOP);
+	if ( i2c_status != I2C_OK )
+		return i2c_status;
+	return data_read;
+}
+
+void io_expander_write_reg(uint8_t reg, uint8_t data) {
 	i2c_status_t i2c_status;
   
-  while (I2CMasterBusy(i2c_base)) {};
-	i2c_status = i2cSetSlaveAddr(i2c_base, 0x27, I2C_WRITE);
-	if ( i2c_status != I2C_OK ){return i2c_status;}
+  while (I2CMasterBusy(I2C1_BASE)){}
+	i2cSetSlaveAddr(I2C1_BASE, MCP23017_DEV_ID, I2C_WRITE);
 
-	i2c_status = i2cSendByte(i2c_base, (uint8_t)addr, I2C_MCS_START | I2C_MCS_RUN);
-	if ( i2c_status != I2C_OK ){return i2c_status;}
+	i2cSendByte(I2C1_BASE, reg, I2C_MCS_START | I2C_MCS_RUN);
 	
-	i2c_status = i2cSendByte(i2c_base, data, I2C_MCS_RUN | I2C_MCS_STOP);
-	if ( i2c_status != I2C_OK ){return i2c_status;}
+	i2cSendByte(I2C1_BASE, data, I2C_MCS_RUN | I2C_MCS_STOP);
 	
-  return i2c_status;
-}
-																		
-i2c_status_t io_expander_byte_read (uint32_t i2c_base, uint16_t addr, uint8_t *data) {
-	
-  i2c_status_t i2c_status;
-  
-  while ( I2CMasterBusy(i2c_base)) {};
-
-	if ( i2cSetSlaveAddr(i2c_base, 0x27, I2C_WRITE) != I2C_OK )
-		return i2c_status;
-
-	i2c_status = i2cSendByte(i2c_base, (uint8_t)(addr), I2C_MCS_START | I2C_MCS_RUN);
-	if ( i2c_status != I2C_OK )
-		return i2c_status;
-
-	i2c_status = i2cSetSlaveAddr(i2c_base, 0x27, I2C_READ);
-	if ( i2c_status != I2C_OK )
-		return i2c_status;
-
-	i2c_status = i2cGetByte(i2c_base, data, I2C_MCS_START | I2C_MCS_RUN | I2C_MCS_STOP);
-	
-  return i2c_status;
 }
 
 bool io_expander_init()
@@ -59,6 +50,7 @@ bool io_expander_init()
   if(!gpio_enable_port(GPIOA_BASE))
 		return false;
 	
+/*FOR leds*/
   // Configure SCL 
   if(!gpio_config_digital_enable(GPIOA_BASE, PA6))
 		return false;
@@ -76,145 +68,96 @@ bool io_expander_init()
 		return false;
   if(!gpio_config_port_control(GPIOA_BASE, GPIO_PCTL_PA7_M, GPIO_PCTL_PA7_I2C1SDA))
 		return false;
+
+	
+	
+	
 	
   //initialize i2c master to set the master address to be the I2C1 on tiva board
   if(initializeI2CMaster(I2C1_BASE)!= I2C_OK)
 		return false;
 	
-	i2c_status = io_expander_byte_write(I2C1_BASE, 0x00, 0x00);//set  the LEDs to be output
-	if(i2c_status != I2C_OK) 
-		return false;
+	i2cSetSlaveAddr(I2C1_BASE, MCP23017_DEV_ID, I2C_WRITE);//set slave addr to be address of MCP23017_DEV_ID(0x27)
+	 
+	//FOR LEDS
+	io_expander_write_reg(MCP23017_IOCONA_R, 0);
+	io_expander_write_reg(MCP23017_IODIRA_R, 0);
 	
-	i2cSetSlaveAddr(I2C1_BASE, 0x27, I2C_WRITE);//set slave addr to be address of MCP23017_DEV_ID(0x27)
-	i2cSendByte(I2C1_BASE, 0x0D, I2C_MCS_START | I2C_MCS_RUN);//0D is the address of register GPPUB(The pull-up resistor used to control push button values)
-	i2cSendByte(I2C1_BASE, 0x0F, I2C_MCS_RUN | I2C_MCS_STOP);//0F is the interrupt enable port of GPPUB. 
-
+	//pipe pushbuttons to sw2
+	//io_expander_write_reg(MCP23017_IODIRB_R, 0x0F);//make pushbuttons to be input
+	io_expander_write_reg(MCP23017_IOCONB_R, 0);//make pushbuttons to compare with previous value
+	io_expander_write_reg(MCP23017_GPINTENB_R, 0x0F);
+	io_expander_write_reg(MCP23017_GPPUB_R, 0x0F);//enable pull-up of pushbuttons
+	
+	//enable edge-triggering interrupts of all 4 GPIOB pushbutton ports
+	if(!gpio_config_falling_edge_irq(GPIOF_BASE, PF0)) return false;
+	NVIC_SetPriority(GPIOF_IRQn, 2);
+	NVIC_EnableIRQ(GPIOF_IRQn);
+	io_expander_read_reg(MCP23017_INTCAPB_R);//read the cap register in every initialization to clear interrupt
 	return true;
 }
 
 
 										
 void disableLeds(void) {
-	io_expander_byte_write(I2C1_BASE,0x12,0x00);//0x12 is the GPIOA register address, which is connected to LEDs
+	io_expander_write_reg(MCP23017_GPIOA_R, 0x00);
 }
 
 void enableLeds(void) {
-	io_expander_byte_write(I2C1_BASE,0x12,0xFF);
+	io_expander_write_reg(MCP23017_GPIOA_R,0xFF);
 }
 
-
-typedef enum 
-{
-  DEBOUNCE_ONE,
-  DEBOUNCE_1ST_ZERO,
-  DEBOUNCE_2ND_ZERO,
-  DEBOUNCE_PRESSED,
-	DEBOUNCE_DONE
-} DEBOUNCE_STATES;
-
-//*****************************************************************************
-// 
-//*****************************************************************************
-uint8_t pushbutton_debounce_fsm(void) {
-	uint8_t button_val;
-	static DEBOUNCE_STATES debounce_state = DEBOUNCE_ONE;	
+uint8_t debounce_expander_fsm(uint8_t buttons_pressed) {
+	static DEBOUNCE_STATES state = DEBOUNCE_ONE;	
 	static uint8_t curr_btn_val = BTN_NONE;
-	static uint8_t prev_btn_val = BTN_NONE;
-	while(I2CMasterBusy(I2C1_BASE)){}
-	io_expander_byte_read(I2C1_BASE, 0x13, &button_val);	//13 is the address GPIOB. We read the output
-	curr_btn_val = button_val;
+	static uint8_t last_btn_val = BTN_NONE;
+		
+	curr_btn_val = buttons_pressed;
 	
-	switch(debounce_state) {
+	switch(state) {
 		case DEBOUNCE_ONE:
-			if(curr_btn_val != BTN_NONE) 
-			{
-				debounce_state = DEBOUNCE_1ST_ZERO;
-				prev_btn_val = curr_btn_val;
+			if(curr_btn_val != BTN_NONE) {
+				state = DEBOUNCE_1ST_ZERO;
+				last_btn_val = curr_btn_val;
 			}
 			return BTN_NONE;
 			
 		case DEBOUNCE_1ST_ZERO:
-			if(curr_btn_val == prev_btn_val) 
-				debounce_state = DEBOUNCE_2ND_ZERO;
-			else 
-			{
-				prev_btn_val = curr_btn_val;
-				debounce_state = DEBOUNCE_ONE;
+			if(curr_btn_val == last_btn_val) state = DEBOUNCE_2ND_ZERO;
+			else {
+				last_btn_val = curr_btn_val;
+				state = DEBOUNCE_ONE;
 			}
 			break;
 			
 		case DEBOUNCE_2ND_ZERO:
-			if(curr_btn_val == prev_btn_val) 
-				debounce_state = DEBOUNCE_PRESSED;
-			else 
-			{
-				prev_btn_val = curr_btn_val;
-				debounce_state = DEBOUNCE_ONE;
+			if(curr_btn_val == last_btn_val) state = DEBOUNCE_PRESSED;
+			else {
+				last_btn_val = curr_btn_val;
+				state = DEBOUNCE_ONE;
 			}
 			return BTN_NONE;
 			
 		case DEBOUNCE_PRESSED:
-			if(curr_btn_val == prev_btn_val) 
-				debounce_state = DEBOUNCE_DONE;
-			else 
-			{
-				prev_btn_val = curr_btn_val;
-				debounce_state = DEBOUNCE_ONE;
+			if(curr_btn_val == last_btn_val) {
+				state = DEBOUNCE_DONE;
+			}
+			else {
+				last_btn_val = curr_btn_val;
+				state = DEBOUNCE_ONE;
 			}
 			return curr_btn_val;
 			
 		case DEBOUNCE_DONE:
-			if(curr_btn_val == prev_btn_val) 
-				debounce_state = DEBOUNCE_DONE;
+			if(curr_btn_val == last_btn_val) {
+				state = DEBOUNCE_DONE;
+			}
 			else {
-				prev_btn_val = curr_btn_val;
-				debounce_state = DEBOUNCE_ONE;
+				last_btn_val = curr_btn_val;
+				state = DEBOUNCE_ONE;
 			}
 			return BTN_NONE;
 	}
-}
-
-uint8_t detect_button_press() {//put this function into the timer and use the timer interrupt????
-	uint8_t btn_data = pushbutton_debounce_fsm();
 	
-	//if(checkButton) {
-		switch( btn_data ){
-			case BTN_D:
-				printf("DOWN BTN PRESSED\n");
-				break;
-			case BTN_U:
-				printf("UP BTN PRESSED\n");
-				break;
-			case BTN_L:
-				printf("LEFT BTN PRESSED\n");
-				break;
-			case BTN_R:
-				printf("RIGHT BTN PRESSED\n");
-				break;
-			case BTN_UD:
-				printf("BTN_UD PRESSED\n");
-				break;
-			case BTN_UL:
-				printf("BTN_UL PRESSED\n");
-				break;
-			case BTN_UR:
-				printf("BTN_UR PRESSED\n");
-				break;
-			case BTN_LR:
-				printf("BTN_LR PRESSED\n");
-				break;
-			case BTN_LD:
-				printf("BTN_LD PRESSED\n");
-				break;
-			case BTN_DR:
-				printf("BTN_DR PRESSED\n");
-				break;
-			default:
-				break;
-		}
-	return btn_data;
-
 }
-
-
 

@@ -4,24 +4,17 @@ extern uint8_t touch_event;
 
 
 int score = 0;
-int numBullets = 10;
+int numBullets = 20;
 
-_GameCharacter ufo = {52, //w
-											36, //h
-											120,UFO_Y_MAX, //x, y
-											space_shipBitmaps,
-											LCD_COLOR_RED,
-											LCD_COLOR_GREEN2,
-											"character",
-											(239-(52/2)),
-											52/2,
-											false};
+// possible colors for the fish
+uint16_t colorArray[6] = {LCD_COLOR_RED, LCD_COLOR_GREEN, LCD_COLOR_ORANGE,
+													LCD_COLOR_WHITE, LCD_COLOR_BLACK, LCD_COLOR_YELLOW};
 
 _GameCharacter octopus ={58,54, //width, height
 												120,OCTOPUS_Y_MAX, //x, y
 												octopus_Bitmap,
-												LCD_COLOR_BLACK,
-												LCD_COLOR_BLUE2,
+												LCD_COLOR_WHITE,
+												LCD_COLOR_BLUE,
 												"character",
 												OCTOPUS_X_MAX,
 												OCTOPUS_X_MIN,
@@ -217,12 +210,11 @@ void shootBullet (uint16_t xPos,
 							 (obj->xPos + obj->width) >= shieldArray[i].xPos)
 					 {
 						 obj->hit = true;
-						 enableLeds();
+		
 					 }	 
 		// empty loop to make bullet move slower
 		for (j = 0; j<5000; j++){}
 		}
-		disableLeds();
 		
 		// Check if bullet has hit any shields
 		 for (i = 0; i < numFish; i++)
@@ -232,14 +224,13 @@ void shootBullet (uint16_t xPos,
 							 (obj->xPos + obj->width) >= fishArray[i].xPos)
 					 {
 						 obj->hit = true;
-						 enableLeds();
+					
 						 fishArray[i].hit = true;
 					 }	 
 		}
 		// empty loop to make bullet move slower
 	for (j = 0; j<5000; j++){}
 	}
-	disableLeds();
 	
 	
 	
@@ -365,67 +356,3 @@ void checkShooting()
 }
 
 
-void gameSetup()
-{
-	
-		 char startPrompt[80] = "Please press S W2 to begin.\n";
-		 print_string_toLCD(startPrompt, 40, 160, LCD_COLOR_WHITE, BG_COLOR);\
-		 eeprom_init_write_read();
-		 //lcd_clear_screen(BG_COLOR);
-	
-	
-		lcd_draw_image
-    (
-        octopus.xPos,                         // X Pos
-        octopus.width,        // Image Horizontal Width
-        octopus.yPos,                       // Y Pos
-        octopus.height,       // Image Vertical Height
-        octopus.bitmap,            // Image
-        octopus.fColor,              // Foreground Color
-        octopus.bColor              // Background Color
-    );
-		
-		lcd_draw_image
-    (
-        fishArray[0].xPos,                         // X Pos
-          fishArray[0].width,        // Image Horizontal Width
-          fishArray[0].yPos,                       // Y Pos
-          fishArray[0].height,       // Image Vertical Height
-          fishArray[0].bitmap,            // Image
-          fishArray[0].fColor,              // Foreground Color
-          fishArray[0].bColor              // Background Color
-    );
-		
-		lcd_draw_image
-    (
-        fishArray[1].xPos,                         // X Pos
-          fishArray[1].width,        // Image Horizontal Width
-          fishArray[1].yPos,                       // Y Pos
-          fishArray[1].height,       // Image Vertical Height
-          fishArray[1].bitmap,            // Image
-          fishArray[1].fColor,              // Foreground Color
-          fishArray[1].bColor              // Background Color
-    );
-			
-			
-		// black shield
-		lcd_draw_box(
-			shieldArray[1].xPos, //x start
-			shieldArray[1].width, // x len
-			shieldArray[1].yPos, //y s start
-			shieldArray[1].height, // y len
-			shieldArray[1].bColor, //border
-			shieldArray[1].fColor, //fill
-			shieldArray[1].border_weight
-		);
-		// blue shield
-			lcd_draw_box(
-			shieldArray[0].xPos, //x start
-			shieldArray[0].width, // x len
-			shieldArray[0].yPos, //y s start
-			shieldArray[0].height, // y len
-			shieldArray[0].bColor, //border
-			shieldArray[0].fColor, //fill
-			shieldArray[0].border_weight
-		);
-	}

@@ -21,8 +21,11 @@
 // EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "driver_defines.h"
-
-          
+#include "io_expander.h"
+#define GPIO_IS_MASK 0xFF
+#define GPIO_IBE_MASK 0xFF  
+#define GPIO_IEV_MASK 0xFF
+volatile bool alert_btn = false;
 //*****************************************************************************
 // Verifies that the base address is a valid GPIO base address
 //*****************************************************************************
@@ -459,11 +462,6 @@ bool  gpio_config_open_drain(uint32_t gpioBase, uint8_t pins)
 		return true;
 	}
 	
-	else 
-	{
-		return false;
-	}
-    
   return true;
 }
 
@@ -485,10 +483,32 @@ bool  gpio_config_open_drain(uint32_t gpioBase, uint8_t pins)
 bool  gpio_config_falling_edge_irq(uint32_t gpioBase, uint8_t pins)
 {
   GPIOA_Type  *gpioPort;
-
+	//printf("mask1: %u\n", pins & GPIO_IM_GPIO_M);
+	//printf("mask2: %u\n", pins & GPIO_IS_MASK);
+ 	if (verify_base_addr(gpioBase))
+	{
+		//printf("true!!!!!!!!!!\n");
+		// Type cast the base address to a GPIOA_Type pointer
+		gpioPort = (GPIOA_Type *) gpioBase;
+		gpioPort->IM &= ~(pins & GPIO_IM_GPIO_M);//clear the IME register by writing 0 to first byte
+		gpioPort->IS &= ~(pins & GPIO_IS_MASK);//set the corresponding pin interrupt to be edge-sensitive
+		gpioPort->IBE &= ~(pins & GPIO_IBE_MASK);//Interrupt generation is controlled by the iev
+		gpioPort->RIS &= ~(pins & GPIO_RIS_GPIO_M);// clear RIS register
+		gpioPort->IEV &= ~(pins & GPIO_IEV_MASK);//enable falling edge triggering on corresponding pins
+		gpioPort->IM |= (pins & GPIO_IM_GPIO_M); // enable interrupts on corresponding pins
+		//gpioPort->ICR |= ( PF0 & GPIO_ICR_GPIO_M); //clear ICR
+		return true;
+	}
   // ADD CODE
   // Verify that the base address is a valid GPIO base address
   // using the verify_base_addr function provided above
     
-  return true;
+  return false;
+}
+void GPIOF_Handler() {
+	//printf("entered GPIOF_handler\n");
+	if(GPIOF->MIS & (PF0 & GPIO_MIS_GPIO_M)) {
+		alert_btn = true;
+		GPIOF->ICR |= ( PF0 & GPIO_ICR_GPIO_M);
+	}
 }

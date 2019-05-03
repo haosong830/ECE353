@@ -8,10 +8,11 @@
 #include <stdlib.h>
 #include "i2c.h"
 #include "gpio_port.h"
-#include "I:\ECE353\ICE_and_Homeworks\Project\buttons.h"
+#include "buttons.h"
 
 #define MCP24LC32AT_DEV_ID			0x50
 #define EEPROM_TEST_NUM_BYTES    20
+#define ADDR_START 256
 
 //*****************************************************************************
 // Fill out the #defines below to configure which pins are connected to
@@ -72,8 +73,6 @@ i2c_status_t eeprom_byte_read
 // Initialize the EEPROM peripheral
 //*****************************************************************************
 bool eeprom_init(void);
-void write_to_eeprom(char string[], uint16_t address);
-void read_from_eprom(uint16_t address, uint8_t *read_val);
 void eeprom_init_write_read();
 
 

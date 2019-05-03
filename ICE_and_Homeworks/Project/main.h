@@ -72,6 +72,7 @@ extern void serialDebugInit(void);
 #include "eeprom.h"
 #include "lcd.h"
 #include "lcd_images.h"
+#include "buttons.h"
 
 
 #define ADDR_START    256
@@ -84,7 +85,8 @@ extern void serialDebugInit(void);
 #define PRESCLR			6
 #define ONE_SHOT    TIMER_TAMR_TAMR_1_SHOT
 #define PERIODIC		TIMER_TAMR_TAMR_PERIOD
-
+#define MID_X 		  120
+#define MID_Y       160
 
 
 #endif

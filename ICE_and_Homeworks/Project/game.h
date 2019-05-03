@@ -7,7 +7,7 @@
 #include "validate.h"
 #include "ft6x06.h"
 #include "timers.h"
-#include "ioexpander.h"
+#include "io_expander.h"
 #include "eeprom.h"
 
 #define UFO_X_MAX 214
@@ -77,6 +77,8 @@ extern _GameCharacter fishArray[];
 extern uint8_t numFish;
 extern uint8_t numShields;
 
+extern uint16_t colorArray[6];
+
 
 extern _GameObj bullet;
 extern _GameObj eraseBullet;
@@ -106,5 +108,4 @@ void drawObject(_GameObj* obj, uint16_t x, uint16_t y);
 void checkShooting();
 void moveShields();
 void moveFish();
-void gameSetup();
 	

@@ -29,6 +29,7 @@
 #include <stdbool.h>
 #include "gpio_port.h"
 #include "i2c.h"
+#include "buttons.h"
 
 //*****************************************************************************
 // Fill out the #defines below to configure which pins are connected to
@@ -77,10 +78,22 @@
 #define MCP23017_OLATA_R 	    0x14 
 #define MCP23017_OLATB_R	    0x15 
 
-
+#define BTN_NONE	0x0F
+#define BTN_U		0x0E
+#define BTN_D		0x0D
+#define BTN_L		0x0B
+#define BTN_R		0x07
+#define	BTN_UD		0x0C
+#define BTN_UL		0x0A
+#define BTN_UR		0x06
+#define BTN_LR		0x03
+#define BTN_LD		0x09
+#define BTN_DR		0x05
 
 
 bool io_expander_init(void);
 void io_expander_write_reg(uint8_t reg, uint8_t data);
 uint8_t io_expander_read_reg(uint8_t);
+uint8_t debounce_expander_fsm(uint8_t buttons_pressed);
+
 #endif

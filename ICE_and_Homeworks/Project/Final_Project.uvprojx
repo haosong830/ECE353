@@ -445,11 +445,6 @@
               <FileType>1</FileType>
               <FilePath>.\ioexpander.c</FilePath>
             </File>
-            <File>
-              <FileName>ioexpander.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\ioexpander.h</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
